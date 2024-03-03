@@ -1,4 +1,4 @@
-CXX = c++
+CXX = c++ -fsanitize=address
 CPPFLAGS = -Wall -Wextra -Werror
 SRC = main.cpp client.cpp
 OBJ = $(SRC:.cpp=.o)
@@ -8,7 +8,7 @@ NAME = ircserv
 all : $(NAME)
 	
 $(NAME) : $(OBJ)
-	$(CXX) $(CPPFLAGS) $(OBJ) -o $(NAME)
+	$(CXX) $(CPPFLAGS) $(OBJ) -C $(NAME)
 
 clean : 
 	$(RM) $(OBJ)
