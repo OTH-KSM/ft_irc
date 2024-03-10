@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/10 01:44:38 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/10 14:04:16 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,9 @@ Server::~Server() {
 //     Server::Signal = true;
 // }
 
+int Server::getFd( void )   {
+    return this->SersocketFD;
+}
 
 void Server::printClients() {
     for (std::map<int, Client>::iterator it = clientMap.begin(); it != clientMap.end(); ++it) {
@@ -37,6 +40,13 @@ void Server::printClients() {
         std::cout << "Real Name: " << it->second.getRealName() << std::endl;
         std::cout << "Registration State: " << it->second.getRegistrationState() << std::endl;
     }
+}
+
+void Server::closeClientsFd() {
+    for (std::map<int, Client>::iterator it = clientMap.begin(); it != clientMap.end(); ++it) {
+        close(it->first);
+    }
+    close(this->SersocketFD);
 }
 
 int Server::getClientNick(std::string nick) {
@@ -76,7 +86,7 @@ void    Server::init()  {
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
     struct addrinfo *bind_address;
-    getaddrinfo(NULL, "8080", &hints, &bind_address);
+    getaddrinfo("0.0.0.0", "8080", &hints, &bind_address);
 
     if((this->SersocketFD = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol)) == -1)
         throw std::runtime_error("Error in Socket");
@@ -115,10 +125,10 @@ void    Server::init()  {
                     FD_SET(socket_client, &master);
                     if(socket_client > max_socket)
                         max_socket = socket_client;
-
+                    cli.setFd(socket_client);
                     // Add the new client socket to the vector
                     this->clientMap.insert(std::make_pair(socket_client, cli));
-
+                    send(socket_client, ":Servername PRIVMSG asad :ahlan bik o marhba bik\r\n", 50, 0);
                     char address_buffer[100];
                     getnameinfo((struct sockaddr *)&client_address, client_len, address_buffer, sizeof(address_buffer), 0, 0, NI_NUMERICHOST);
                     std::cout << "Client <" << socket_client << "> Connected" << std::endl;
@@ -134,7 +144,7 @@ void    Server::init()  {
                         continue;
                     }
                     read[bytes_received] = 0;
-                    if (!strcmp(read, "exit\n"))
+                    if (!strcmp(read, "exit\r\n"))
                         throw std::runtime_error("ohh magad");
                     std::string str(read);
                     try
@@ -143,11 +153,12 @@ void    Server::init()  {
                     }
                     catch(const std::exception& e)
                     {
-                        send(i, e.what(), strlen(e.what()), 0);
+                        std::string cont = e.what();
+                        std::string message = cont + "\r\n";
+                        send(i, message.c_str(), message.size(), 0);
                     }
                 }
             }
-
         }
     }
 }
@@ -159,10 +170,11 @@ void    Server::parc(std::string message, Client& cli) {
     std::string temp;
     std::stringstream cc;
 
+    message.erase(message.length() - 1);
     size_t prefixEnd = message.find(":", 2);
     if (prefixEnd != std::string::npos) {
-        std::string prefix = message.substr(prefixEnd + 1, message.length() - 1);
-        message.erase(prefixEnd, message.length() - 1);
+        std::string prefix = message.substr(prefixEnd + 1, message.length() - 2);
+        message.erase(prefixEnd, message.length() - 2);
         cc.str(message);
         while (cc >> temp)  {
             parc.params.push_back(temp);
@@ -182,7 +194,7 @@ void    Server::parc(std::string message, Client& cli) {
         parc.params.pop_front();
     }
     if (parc.params.size() > 15)
-        std::runtime_error("Error: More than 15 parameters are not allowed.\n");
+        std::runtime_error("Error: More than 15 parameters are not allowed.");
     
     // std::deque<std::string>::iterator it;
     // int i = 0;
@@ -196,29 +208,29 @@ void    Server::parc(std::string message, Client& cli) {
     std::string nick;
     if (parc.cmd == "PASS") {
         if (state != 0)  // 0 -> pass
-            throw std::runtime_error("Error: Unexpected PASS command.\n");
+            throw std::runtime_error(" :Unexpected PASS command.");
         if (parc.params.empty())
-            throw std::runtime_error(parc.cmd + " :Not enough parameters\n");
+            throw std::runtime_error(parc.cmd + " :Not enough parameters");
         if (parc.params.front() != this->password)
-            throw std::runtime_error(":Incorrect password provided with PASS command.\n" + this->password);
+            throw std::runtime_error(":Incorrect password provided with PASS command." + this->password);
         cli.setRegistrationState(1); // 1 -> nick
     }
     else if (parc.cmd == "NICK") {
         if (state != 1) 
-            throw std::runtime_error("Error: Unexpected NICK command.\n");
+            throw std::runtime_error(" :Unexpected NICK command.");
         nick = parc.params.front();
         if (nick.empty())
-            throw std::runtime_error(":No nickname given\n");
-        if (nick.length() > 9 || nick.find_first_of(" ,*?!@.") != std::string::npos)
-            throw std::runtime_error(nick + " :Erroneus nickname\n");
+            throw std::runtime_error(" :No nickname given");
+        if (nick.length() > 9 || nick.find_first_of(" ,*?!@.#") != std::string::npos)
+            throw std::runtime_error(nick + " :Erroneus nickname");
         cli.setNickName(nick);
         cli.setRegistrationState(2); // 2 -> user
     }
     else if (parc.cmd == "USER")    {
         if (state != 2)
-            throw std::runtime_error("Error: Unexpected USER command.\n");
+            throw std::runtime_error(" :Unexpected USER command.");
         if (parc.params.size() < 4)
-            throw std::runtime_error(parc.cmd + " :Not enough parameters\n");
+            throw std::runtime_error(parc.cmd + " :Not enough parameters");
         cli.setUsername(parc.params[0]);
         cli.setRealName(parc.params[3]);
         cli.setRegistrationState(3);
@@ -227,15 +239,29 @@ void    Server::parc(std::string message, Client& cli) {
     //     if (searchChannel(parc.params[0]));
     //         channels.
     // }
+    else if (parc.cmd == "SHOWME")  {
+        std::string message;
+        message = ":YourServer SHOWME asad :NICKNAME: " + cli.getNickname() + "\r\n";
+        send(cli.getFd(), message.c_str(), message.size(), 0);
+        message = ":YourServer SHOWME asad :USERNAME: " + cli.getUsername() + "\r\n";
+        send(cli.getFd(), message.c_str(), message.size(), 0);
+        message = ":YourServer SHOWME asad :REALNAME: " + cli.getRealName() + "\r\n";
+        send(cli.getFd(), message.c_str(), message.size(), 0);
+        message = ":YourServer SHOWME asad :SOCKETFD: " + std::to_string(cli.getRegistrationState()) + "\r\n";
+        send(cli.getFd(), message.c_str(), message.size(), 0);
+        
+    }
     else if (parc.cmd == "PRIVMSG") {
         if (state != 3)
-            throw std::runtime_error("Error: Unexpected PRIVMSG command\n");
+            throw std::runtime_error(" :Unexpected PRIVMSG command");
         if (parc.params.size() < 2)
-            throw std::runtime_error(parc.cmd + " :Not enough parameters\n");
+            throw std::runtime_error(parc.cmd + " :Not enough parameters");
         // if (parc.params[0][0] == '#')
         //     sendToChannel(parc.params[0], parc.params[1]);
         // else
         sendOneToOne(parc.params[0], parc.params[1]);
     }
+    else
+        send(cli.getFd(), "ACH HAD L INPUT", 15, 0);
 }
 

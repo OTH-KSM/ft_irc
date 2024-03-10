@@ -6,11 +6,13 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 12:32:06 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/09 21:01:14 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/10 11:11:17 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header.hpp"
+
+
 
 int main(int argc, char *argv[])    {
     if (argc != 3)  {
@@ -30,6 +32,7 @@ int main(int argc, char *argv[])    {
     catch ( std::exception &e )   {
         // clearClients and Fds
         srv.printClients();
+        srv.closeClientsFd();
         std::cout << e.what() << std::endl;
     }
 }

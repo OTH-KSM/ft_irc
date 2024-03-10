@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 12:33:51 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/10 01:40:35 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/10 11:12:08 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,10 +95,13 @@ public:
 
 	void init(void);
 	
+	int	getFd( void );
+	
 	void	printClients( void );
 	void	sendOneToOne(std::string dest, std::string message);
 	void    sendToChannel(std::string dest, std::string message);
 	int		getClientNick(std::string nick);
+	void 	closeClientsFd();
 
 	
 	void parc(std::string message, Client& cli);
