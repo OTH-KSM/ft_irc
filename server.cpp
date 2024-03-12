@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/10 14:04:16 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/12 03:50:13 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 /************************ Server ************************/
 
-Server::Server(int port, std::string pass) :  port(port), password(pass) {
+Server::Server(int port, std::string pass) :  Servername("YourServer"), port(port), password(pass) {
     
 }
 
@@ -26,8 +26,12 @@ Server::~Server() {
 // {
 //     (void)signum;
 //     std::cout << std::endl << "Signal Received!" << std::endl;
-//     Server::Signal = true;
+//     this->Signal = true;
 // }
+
+std::string Server::getServerName( void )   {
+    return this->Servername;
+}
 
 int Server::getFd( void )   {
     return this->SersocketFD;
@@ -49,19 +53,21 @@ void Server::closeClientsFd() {
     close(this->SersocketFD);
 }
 
-int Server::getClientNick(std::string nick) {
+int Server::getClientNick(std::string nick, int fd) {
     for (std::map<int, Client>::iterator it = clientMap.begin(); it != clientMap.end(); ++it)   {
-        if (it->second.getNickname() == nick)
+        if (it->second.getNickname() == nick && it->first != fd)
             return (it->first);
     }
     return (-1);
 }
 
-void    Server::sendOneToOne(std::string dest, std::string message)    {
-    int destFd = getClientNick(dest);
+void    Server::sendOneToOne(Client& cli, std::string dest, std::string message)    {
+    int destFd = getClientNick(dest, cli.getFd());
     if (destFd == -1)
         throw std::runtime_error(dest + " :No such nick/channel\n");
-    send(destFd, message.c_str(), message.size(), 0);
+    std::string newmsg = ":" + cli.getNickname() + " PRIVMSG " + dest + " : "+ message + "\r\n";
+    
+    send(destFd, newmsg.c_str(), newmsg.size(), 0);
 }
 
 void    Server::sendToChannel(std::string dest, std::string message) {
@@ -86,7 +92,7 @@ void    Server::init()  {
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
     struct addrinfo *bind_address;
-    getaddrinfo("0.0.0.0", "8080", &hints, &bind_address);
+    getaddrinfo("10.11.4.11", "8080", &hints, &bind_address);
 
     if((this->SersocketFD = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol)) == -1)
         throw std::runtime_error("Error in Socket");
@@ -103,7 +109,7 @@ void    Server::init()  {
     std::cout << "Waiting for connections...." << std::endl;
 
 
-    while(1)
+    while(this->Signal == false)
     {
         fd_set reads;
         reads = master;
@@ -128,7 +134,6 @@ void    Server::init()  {
                     cli.setFd(socket_client);
                     // Add the new client socket to the vector
                     this->clientMap.insert(std::make_pair(socket_client, cli));
-                    send(socket_client, ":Servername PRIVMSG asad :ahlan bik o marhba bik\r\n", 50, 0);
                     char address_buffer[100];
                     getnameinfo((struct sockaddr *)&client_address, client_len, address_buffer, sizeof(address_buffer), 0, 0, NI_NUMERICHOST);
                     std::cout << "Client <" << socket_client << "> Connected" << std::endl;
@@ -144,7 +149,7 @@ void    Server::init()  {
                         continue;
                     }
                     read[bytes_received] = 0;
-                    if (!strcmp(read, "exit\r\n"))
+                    if (!strcmp(read, "exit\n"))
                         throw std::runtime_error("ohh magad");
                     std::string str(read);
                     try
@@ -154,7 +159,7 @@ void    Server::init()  {
                     catch(const std::exception& e)
                     {
                         std::string cont = e.what();
-                        std::string message = cont + "\r\n";
+                        std::string message = ":" + this->Servername + " 000 " + clientMap[i].getNickname() + cont + "\r\n";
                         send(i, message.c_str(), message.size(), 0);
                     }
                 }
@@ -196,13 +201,13 @@ void    Server::parc(std::string message, Client& cli) {
     if (parc.params.size() > 15)
         std::runtime_error("Error: More than 15 parameters are not allowed.");
     
-    // std::deque<std::string>::iterator it;
-    // int i = 0;
-    //     std::cout << "prefix -> " << parc.prefix << std::endl;
-    //     std::cout << "comand -> " << parc.cmd << std::endl;
-    // for (it = parc.params.begin(); it != parc.params.end(); it++)   {
-    //     std::cout << "param  " << i++ << " -> " << *it << std::endl;
-    // }
+    std::deque<std::string>::iterator it;
+    int i = 0;
+        std::cout << "prefix -> " << parc.prefix << std::endl;
+        std::cout << "comand -> " << parc.cmd << std::endl;
+    for (it = parc.params.begin(); it != parc.params.end(); it++)   {
+        std::cout << "param  " << i++ << " -> " << *it << std::endl;
+    }
     
     int state = cli.getRegistrationState();
     std::string nick;
@@ -212,7 +217,7 @@ void    Server::parc(std::string message, Client& cli) {
         if (parc.params.empty())
             throw std::runtime_error(parc.cmd + " :Not enough parameters");
         if (parc.params.front() != this->password)
-            throw std::runtime_error(":Incorrect password provided with PASS command." + this->password);
+            throw std::runtime_error(" :Incorrect password provided with PASS command." + this->password);
         cli.setRegistrationState(1); // 1 -> nick
     }
     else if (parc.cmd == "NICK") {
@@ -241,13 +246,16 @@ void    Server::parc(std::string message, Client& cli) {
     // }
     else if (parc.cmd == "SHOWME")  {
         std::string message;
-        message = ":YourServer SHOWME asad :NICKNAME: " + cli.getNickname() + "\r\n";
+        
+        message = ":" + this->Servername + " 111 " + cli.getNickname() + " :NICKNAME: " + cli.getNickname() + "\r\n";
         send(cli.getFd(), message.c_str(), message.size(), 0);
-        message = ":YourServer SHOWME asad :USERNAME: " + cli.getUsername() + "\r\n";
+        message = ":" + this->Servername + " 111 " + cli.getNickname() + " :USERNAME: " + cli.getUsername() + "\r\n";
         send(cli.getFd(), message.c_str(), message.size(), 0);
-        message = ":YourServer SHOWME asad :REALNAME: " + cli.getRealName() + "\r\n";
+        message = ":" + this->Servername + " 111 " + cli.getNickname() + " :REALNAME: " + cli.getRealName() + "\r\n";
         send(cli.getFd(), message.c_str(), message.size(), 0);
-        message = ":YourServer SHOWME asad :SOCKETFD: " + std::to_string(cli.getRegistrationState()) + "\r\n";
+        message = ":" + this->Servername + " 111 " + cli.getNickname() + " :REGISTRA: " + std::to_string(cli.getRegistrationState()) + "\r\n";
+        send(cli.getFd(), message.c_str(), message.size(), 0);
+        message = ":" + this->Servername + " 111 " + cli.getNickname() + " :CLIENTFD: " + std::to_string(cli.getFd()) + "\r\n";
         send(cli.getFd(), message.c_str(), message.size(), 0);
         
     }
@@ -259,7 +267,8 @@ void    Server::parc(std::string message, Client& cli) {
         // if (parc.params[0][0] == '#')
         //     sendToChannel(parc.params[0], parc.params[1]);
         // else
-        sendOneToOne(parc.params[0], parc.params[1]);
+        std::cout << std::endl << "<" << parc.params[1] << ">" << std::endl;
+            sendOneToOne(cli, parc.params[0], parc.params[1]);
     }
     else
         send(cli.getFd(), "ACH HAD L INPUT", 15, 0);

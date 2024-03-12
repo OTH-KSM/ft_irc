@@ -37,3 +37,13 @@ PART + ((#/&)channel's name) + (leaving message)
 - when prefixes : when the last params starts with : prefix and the newline get contained in the string of the last param
 
 - all passwords get accepted when using limechat
+
+
+
+
+
+
+
+==19703==ERROR: AddressSanitizer: BUS on unknown address 0x00010bb15d8d (pc 0x00010bb15d8d bp 0x7ffee40f07d0 sp 0x7ffee40ef920 T0)
+AddressSanitizer:DEADLYSIGNAL
+AddressSanitizer: nested bug in the same thread, aborting.

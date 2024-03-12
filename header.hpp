@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 12:33:51 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/10 11:12:08 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/12 03:50:06 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@
 #include <poll.h>
 #include <vector>
 #include <string>
+#include <csignal>
 
 class Client
 {
@@ -82,6 +83,7 @@ class	Channel	{
 
 class Server	{
 private:
+	std::string	Servername;
 	int			port;
 	std::string	password;
 	int			SersocketFD;
@@ -90,6 +92,7 @@ private:
 	std::vector<Channel>	channels;
 
 public:
+	static bool		Signal;
 	Server(int port, std::string pass);
 	~Server();
 
@@ -97,13 +100,19 @@ public:
 	
 	int	getFd( void );
 	
+	std::string getServerName( void );
+
 	void	printClients( void );
-	void	sendOneToOne(std::string dest, std::string message);
+	void	sendOneToOne(Client& cli, std::string dest, std::string message);
 	void    sendToChannel(std::string dest, std::string message);
-	int		getClientNick(std::string nick);
+	int		getClientNick(std::string nick, int fd);
 	void 	closeClientsFd();
 
-	
+	static void SignalHandler(int signum) {
+        (void)signum;
+        std::cout << std::endl << "Signal Received!" << std::endl;
+        Signal = true;
+    }
 	void parc(std::string message, Client& cli);
 
 	Channel	searchChannel(std::string name);

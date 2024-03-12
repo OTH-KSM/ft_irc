@@ -6,13 +6,14 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 12:32:06 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/10 11:11:17 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/12 03:45:48 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header.hpp"
 
 
+bool Server::Signal = false;
 
 int main(int argc, char *argv[])    {
     if (argc != 3)  {
@@ -27,10 +28,10 @@ int main(int argc, char *argv[])    {
     
     Server      srv(port, argv[2]);
     try {
+        std::signal(SIGINT, Server::SignalHandler);
         srv.init();
     }
     catch ( std::exception &e )   {
-        // clearClients and Fds
         srv.printClients();
         srv.closeClientsFd();
         std::cout << e.what() << std::endl;
