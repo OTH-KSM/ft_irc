@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/12 03:50:13 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/13 18:32:11 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,13 +21,6 @@ Server::Server(int port, std::string pass) :  Servername("YourServer"), port(por
 Server::~Server() {
         
 }
-
-// void Server::SignalHandler(int signum)
-// {
-//     (void)signum;
-//     std::cout << std::endl << "Signal Received!" << std::endl;
-//     this->Signal = true;
-// }
 
 std::string Server::getServerName( void )   {
     return this->Servername;
@@ -65,7 +58,7 @@ void    Server::sendOneToOne(Client& cli, std::string dest, std::string message)
     int destFd = getClientNick(dest, cli.getFd());
     if (destFd == -1)
         throw std::runtime_error(dest + " :No such nick/channel\n");
-    std::string newmsg = ":" + cli.getNickname() + " PRIVMSG " + dest + " : "+ message + "\r\n";
+    std::string newmsg = ":" + cli.getNickname() + " PRIVMSG " + dest + " : " + message + "\r\n";
     
     send(destFd, newmsg.c_str(), newmsg.size(), 0);
 }
@@ -92,7 +85,7 @@ void    Server::init()  {
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
     struct addrinfo *bind_address;
-    getaddrinfo("10.11.4.11", "8080", &hints, &bind_address);
+    getaddrinfo("10.11.2.10", "8080", &hints, &bind_address);
 
     if((this->SersocketFD = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol)) == -1)
         throw std::runtime_error("Error in Socket");
@@ -134,6 +127,7 @@ void    Server::init()  {
                     cli.setFd(socket_client);
                     // Add the new client socket to the vector
                     this->clientMap.insert(std::make_pair(socket_client, cli));
+                    send(socket_client, "ahlan bik o marhba bik\r\n", 24, 0);
                     char address_buffer[100];
                     getnameinfo((struct sockaddr *)&client_address, client_len, address_buffer, sizeof(address_buffer), 0, 0, NI_NUMERICHOST);
                     std::cout << "Client <" << socket_client << "> Connected" << std::endl;
@@ -159,7 +153,8 @@ void    Server::init()  {
                     catch(const std::exception& e)
                     {
                         std::string cont = e.what();
-                        std::string message = ":" + this->Servername + " 000 " + clientMap[i].getNickname() + cont + "\r\n";
+                        std::cout << this->Servername << std::endl;
+                        std::string message = ":YourServer " + cont + "\r\n";
                         send(i, message.c_str(), message.size(), 0);
                     }
                 }
@@ -167,6 +162,9 @@ void    Server::init()  {
         }
     }
 }
+
+// message = ":" + this->Servername + " 000 " + clientMap[i].getNickname() + cont + "\r\n";
+// message = ":" + this->Servername + " 111   :NICKNAME: " + cli.getNickname() + "\r\n";
 
 /************************ GENERAL ************************/
 
@@ -211,64 +209,66 @@ void    Server::parc(std::string message, Client& cli) {
     
     int state = cli.getRegistrationState();
     std::string nick;
-    if (parc.cmd == "PASS") {
-        if (state != 0)  // 0 -> pass
-            throw std::runtime_error(" :Unexpected PASS command.");
-        if (parc.params.empty())
-            throw std::runtime_error(parc.cmd + " :Not enough parameters");
-        if (parc.params.front() != this->password)
-            throw std::runtime_error(" :Incorrect password provided with PASS command." + this->password);
-        cli.setRegistrationState(1); // 1 -> nick
+    if (parc.cmd == "PASS") { // 0 -> pass  
+        if (state != 1) {
+            if (state != 0) {
+                if (state == 2)
+                    throw std::runtime_error("421 * :Unexpected command DO: NICK");
+                throw std::runtime_error("462 * :You may not reregister");
+            }
+            if (parc.params.empty())
+                throw std::runtime_error("461 * " + parc.cmd + " :Not enough parameters");
+            if (parc.params.front() != this->password)
+                throw std::runtime_error("464 * :Incorrect password provided with PASS command.");
+            cli.setRegistrationState(1); // 1 -> nick
+        }
     }
     else if (parc.cmd == "NICK") {
-        if (state != 1) 
-            throw std::runtime_error(" :Unexpected NICK command.");
+        if (state != 1) {
+            if (state == 0)
+                throw std::runtime_error("451 * :You have not registered");
+            throw std::runtime_error("451 * :You have not registered");
+        }
         nick = parc.params.front();
         if (nick.empty())
-            throw std::runtime_error(" :No nickname given");
+            throw std::runtime_error("431 * :No nickname given");
         if (nick.length() > 9 || nick.find_first_of(" ,*?!@.#") != std::string::npos)
-            throw std::runtime_error(nick + " :Erroneus nickname");
+            throw std::runtime_error("432 * " + nick + " :Erroneus nickname");
         cli.setNickName(nick);
         cli.setRegistrationState(2); // 2 -> user
     }
     else if (parc.cmd == "USER")    {
-        if (state != 2)
-            throw std::runtime_error(" :Unexpected USER command.");
+        if (state != 2) {
+            if (state == 0 || state == 1)
+                throw std::runtime_error("451 * :You have not registered");
+            throw std::runtime_error("462 * :You may not reregister");
+        }
         if (parc.params.size() < 4)
-            throw std::runtime_error(parc.cmd + " :Not enough parameters");
+             throw std::runtime_error("461 * " + parc.cmd + " :Not enough parameters");
         cli.setUsername(parc.params[0]);
         cli.setRealName(parc.params[3]);
         cli.setRegistrationState(3);
     }
-    // else if (parc.cmd == "JOIN")    {
-    //     if (searchChannel(parc.params[0]));
-    //         channels.
-    // }
     else if (parc.cmd == "SHOWME")  {
         std::string message;
         
-        message = ":" + this->Servername + " 111 " + cli.getNickname() + " :NICKNAME: " + cli.getNickname() + "\r\n";
+        message = ":" + this->Servername + " PRIVMSG " + cli.getNickname() + " :NICKNAME: " + cli.getNickname() + "\r\n";
         send(cli.getFd(), message.c_str(), message.size(), 0);
-        message = ":" + this->Servername + " 111 " + cli.getNickname() + " :USERNAME: " + cli.getUsername() + "\r\n";
+        message = ":" + this->Servername + " PRIVMSG " + cli.getNickname() + " :USERNAME: " + cli.getUsername() + "\r\n";
         send(cli.getFd(), message.c_str(), message.size(), 0);
-        message = ":" + this->Servername + " 111 " + cli.getNickname() + " :REALNAME: " + cli.getRealName() + "\r\n";
+        message = ":" + this->Servername + " PRIVMSG " + cli.getNickname() + " :REALNAME: " + cli.getRealName() + "\r\n";
         send(cli.getFd(), message.c_str(), message.size(), 0);
-        message = ":" + this->Servername + " 111 " + cli.getNickname() + " :REGISTRA: " + std::to_string(cli.getRegistrationState()) + "\r\n";
+        message = ":" + this->Servername + " PRIVMSG " + cli.getNickname() + " :REGISTRA: " + std::to_string(cli.getRegistrationState()) + "\r\n";
         send(cli.getFd(), message.c_str(), message.size(), 0);
-        message = ":" + this->Servername + " 111 " + cli.getNickname() + " :CLIENTFD: " + std::to_string(cli.getFd()) + "\r\n";
+        message = ":" + this->Servername + " PRIVMSG " + cli.getNickname() + " :CLIENTFD: " + std::to_string(cli.getFd()) + "\r\n";
         send(cli.getFd(), message.c_str(), message.size(), 0);
-        
     }
     else if (parc.cmd == "PRIVMSG") {
         if (state != 3)
-            throw std::runtime_error(" :Unexpected PRIVMSG command");
+            throw std::runtime_error("451 * :You have not registered");
         if (parc.params.size() < 2)
-            throw std::runtime_error(parc.cmd + " :Not enough parameters");
-        // if (parc.params[0][0] == '#')
-        //     sendToChannel(parc.params[0], parc.params[1]);
-        // else
-        std::cout << std::endl << "<" << parc.params[1] << ">" << std::endl;
-            sendOneToOne(cli, parc.params[0], parc.params[1]);
+            throw std::runtime_error("461 * " + parc.cmd + " :Not enough parameters");
+        sendOneToOne(cli, parc.params[0], parc.params[1]);
     }
     else
         send(cli.getFd(), "ACH HAD L INPUT", 15, 0);
