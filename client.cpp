@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/09 17:50:00 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/09 20:51:51 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/14 18:22:00 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ void    Client::setNickName(std::string nick) {
     nickname = nick;
 }
 
-void    Client::setUsername(std::string user) {
+void    Client::setUserName(std::string user) {
     username = user;
 }
 
@@ -42,11 +42,11 @@ int     Client::getFd( void )   const   {
     return this->FD;
 }
 
-std::string Client::getNickname() const {
+std::string Client::getNickName() const {
     return nickname;
 }
 
-std::string Client::getUsername() const {
+std::string Client::getUserName() const {
     return username;
 }
 
