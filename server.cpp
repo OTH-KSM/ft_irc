@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/12 03:50:13 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/15 01:21:33 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,55 +45,204 @@ Server::Server(int port, std::string pass) :  Servername("YourServer"), port(por
 }
 
 Server::~Server() {
-        
+	for (std::map<int, Client>::iterator it = clientMap.begin(); it != clientMap.end(); ++it) {
+		close(it->first);	
+	}
 }
 
-// void Server::SignalHandler(int signum)
-// {
-//     (void)signum;
-//     std::cout << std::endl << "Signal Received!" << std::endl;
-//     this->Signal = true;
-// }
+void Server::sendInitialServerReplies(Client &cli) {
+	std::string message;
+	std::ostringstream portStr;
+	portStr << this->port;
+
+	message = ":" + this->Servername + " 001 " + cli.getNickName() + " :Welcome to the Internet Relay Chat network " + cli.getNickName() + "\r\n";
+	send(cli.getFd(), message.c_str(), message.size(), 0);
+
+	message = ":" + this->Servername + " 002 " + cli.getNickName() + " :Your host is " + this->Servername + ", running version " + this->Version + "\r\n";
+	send(cli.getFd(), message.c_str(), message.size(), 0);
+
+	message = ":" + this->Servername + " 003 " + cli.getNickName() + " :This server was created " + this->CreateDate + "\r\n";
+	send(cli.getFd(), message.c_str(), message.size(), 0);
+
+	message = ":" + this->Servername + " 004 " + cli.getNickName() + " " + this->Servername + " " + this->Version + " NONE " + this->ChannelModes + "\r\n";
+	send(cli.getFd(), message.c_str(), message.size(), 0);
+
+	message = ":" + this->Servername + " 005 " + cli.getNickName() + " :Try server " + this->Servername + ", port " + portStr.str() + "\r\n";
+	send(cli.getFd(), message.c_str(), message.size(), 0);
+
+
+	std::vector<std::string> asciiArtLines;
+	asciiArtLines.push_back(" _____");
+	asciiArtLines.push_back("|___ /    __ _   _ __ ___     ___       ___    ___   _ __  __   __   ___ _ __");
+	asciiArtLines.push_back("  |_ \\   / _` | | '_ ` _ \\   / _ \\     / __|  / _ \\ | '__| \\ \\ / /  / _ \\ '__|");
+	asciiArtLines.push_back(" ___) | | (_| | | | | | | | | (_) |    \\__ \\ |  __/ | |     \\ V /  |  __/ |");
+	asciiArtLines.push_back("|____/   \\__,_| |_| |_| |_|  \\___/     |___/  \\___| |_|      \\_/    \\___|_|");
+
+	for (std::vector<std::string>::iterator it = asciiArtLines.begin(); it != asciiArtLines.end(); ++it) {
+		message = ":" + this->Servername + " 375 " + cli.getNickName() + " :" + *it + "\r\n";
+		send(cli.getFd(), message.c_str(), message.size(), 0);
+	}
+
+	message = ":" + this->Servername + " 376 " + cli.getNickName() + " :End of /MOTD command" + "\r\n";
+	send(cli.getFd(), message.c_str(), message.size(), 0);
+}
+
+/*  ____          _     _                       
+* / ___|   ___  | |_  | |_    ___   _ __   ___ 
+*| |  _   / _ \ | __| | __|  / _ \ | '__| / __|
+*| |_| | |  __/ | |_  | |_  |  __/ | |    \__ \
+* \____|  \___|  \__|  \__|  \___| |_|    |___/
+* GETTERS SECTION STARTS HERE	
+*/
 
 std::string Server::getServerName( void )   {
-    return this->Servername;
+	return this->Servername;
 }
 
 int Server::getFd( void )   {
-    return this->SersocketFD;
+	return this->SersocketFD;
 }
+
+int Server::isClientExist(std::string nick, int fd) {
+	for (std::map<int, Client>::iterator it = clientMap.begin(); it != clientMap.end(); ++it)   {
+		if (it->second.getNickName() == nick && it->first != fd)
+			return (it->first);
+	}
+	return (-1);
+}
+
+Client&	Server::getClientByNick(std::string nick) {
+	for (std::map<int, Client>::iterator it = clientMap.begin(); it != clientMap.end(); ++it)   {
+		if (it->second.getNickName() == nick)
+			return (it->second);
+	}
+	throw std::runtime_error("401 * " + nick + " :No such Nickname");
+}
+
+Client&	Server::getClientByFd(int fd) {
+	return clientMap[fd];
+}
+
+/*             _   _                _   _  __ _           _   _             
+*  __ _ _   _| |_| |__   ___ _ __ | |_(_)/ _(_) ___ __ _| |_(_) ___  _ __  
+* / _` | | | | __| '_ \ / _ \ '_ \| __| | |_| |/ __/ _` | __| |/ _ \| '_ \ 
+*| (_| | |_| | |_| | | |  __/ | | | |_| |  _| | (_| (_| | |_| | (_) | | | |
+* \__,_|\__,_|\__|_| |_|\___|_| |_|\__|_|_| |_|\___\__,_|\__|_|\___/|_| |_|
+* AUTHENTIFICATION SECTION STARTS HERE
+*/
+
+void	Server::handlePassCommand(t_parc &parc, Client& cli)	{
+	int state = cli.getRegistrationState();
+	if (state != 1) {
+		if (state != 0) {
+			if (state == 2)
+				throw std::runtime_error("421 * :Unexpected command DO: USER");
+			throw std::runtime_error("462 * :You are already connected and cannot handshake again");
+		}
+		if (parc.params.empty())
+			throw std::runtime_error("461 * " + parc.cmd + " :Not enough parameters");
+		if (parc.params.front() != this->password)
+			throw std::runtime_error("464 * :Incorrect password provided with PASS command.");
+		cli.setRegistrationState(1); // 1 -> nick
+	}
+}
+
+void	Server::handleNickCommand(t_parc &parc, Client& cli)	{
+	int state = cli.getRegistrationState();
+	std::string nick;
+	if (state != 1 && state != 3) {
+		throw std::runtime_error("451 * :You have not registered");
+	}
+	nick = parc.params.front();
+	if (nick.empty())
+		throw std::runtime_error("431 * :No nickname given");
+	if (nick.length() > 9 || nick.find_first_of(" ,*?!@.#") != std::string::npos)
+		throw std::runtime_error("432 * " + nick + " :Erroneus nickname");
+	cli.setNickName(nick);
+	if (state != 3)
+		cli.setRegistrationState(2); // 2 -> user
+}
+
+void	Server::handleUserCommand(t_parc &parc, Client& cli)	{
+	int state = cli.getRegistrationState();
+	if (state != 2) {
+		if (state == 0 || state == 1)
+			throw std::runtime_error("451 * :You have not registered");
+		throw std::runtime_error("462 * :You are already connected and cannot handshake again");
+	}
+	if (parc.params.size() < 4)
+		throw std::runtime_error("461 * " + parc.cmd + " :Not enough parameters");
+	cli.setUserName(parc.params[0]);
+	cli.setRealName(parc.params[3]);
+	cli.setRegistrationState(3);
+	sendInitialServerReplies(cli);
+}
+
+/*  ___    _____   _   _   _____   ____       ____    ___    __  __   __  __      _      _   _   ____    ____  
+* / _ \  |_   _| | | | | | ____| |  _ \     / ___|  / _ \  |  \/  | |  \/  |    / \    | \ | | |  _ \  / ___| 
+*| | | |   | |   | |_| | |  _|   | |_) |   | |     | | | | | |\/| | | |\/| |   / _ \   |  \| | | | | | \___ \ 
+*| |_| |   | |   |  _  | | |___  |  _ <    | |___  | |_| | | |  | | | |  | |  / ___ \  | |\  | | |_| |  ___) |
+* \___/    |_|   |_| |_| |_____| |_| \_\    \____|  \___/  |_|  |_| |_|  |_| /_/   \_\ |_| \_| |____/  |____/ 
+* OTHER COMMANDS SECTION STARTS HERE
+*/
+
+void	Server::handleWhoisCommand(t_parc &parc, Client& cli)	{
+		if (parc.params[0].empty())
+			throw std::runtime_error("461 * " + parc.cmd + " :Not enough parameters");
+		Client targetClient = getClientByNick(parc.params[0]);
+
+		std::string nick = targetClient.getNickName(); 
+		std::string user = targetClient.getUserName(); 
+		// std::string host = targetClient.getHostname(); // The hostname of the client
+		std::string realName = targetClient.getRealName(); 
+		std::string serverName = this->Servername; 
+		std::string serverInfo = "The best IRC server Ever";
+
+		std::string message = ":" + this->Servername + " 311 " + cli.getNickName() + " " + nick + " " + user + " " + "10.11.1.11" + " * :" + realName + "\r\n";
+		send(cli.getFd(), message.c_str(), message.size(), 0);
+
+		message = ":" + this->Servername + " 312 " + cli.getNickName() + " " + nick + " " + serverName + " :" + serverInfo + "\r\n";
+		send(cli.getFd(), message.c_str(), message.size(), 0);
+
+		message = ":" + this->Servername + " 318 " + cli.getNickName() + " " + nick + " :End of WHOIS list\r\n";
+		send(cli.getFd(), message.c_str(), message.size(), 0);
+}
+
+void	Server::handlePrivmsgCommand(t_parc &parc, Client& cli)	{
+	int state = cli.getRegistrationState();
+	if (state != 3)
+		throw std::runtime_error("451 * :You have not registered");
+	if (parc.params.size() < 2)
+		throw std::runtime_error("461 * " + parc.cmd + " :Not enough parameters");
+	sendOneToOne(cli, parc.params[0], parc.params[1]);
+}
+
+/*  ____   _____   _   _   _____   ____       _      _     
+* / ___| | ____| | \ | | | ____| |  _ \     / \    | |    
+*| |  _  |  _|   |  \| | |  _|   | |_) |   / _ \   | |    
+*| |_| | | |___  | |\  | | |___  |  _ <   / ___ \  | |___ 
+* \____| |_____| |_| \_| |_____| |_| \_\ /_/   \_\ |_____|
+* GENERAL SECTION STARTS HERE
+*/
 
 void Server::printClients() {
-    for (std::map<int, Client>::iterator it = clientMap.begin(); it != clientMap.end(); ++it) {
-        std::cout << "Client <" << it->first << "> Nickname: " << it->second.getNickname() << std::endl;
-        std::cout << "Username: " << it->second.getUsername() << std::endl;
-        std::cout << "Real Name: " << it->second.getRealName() << std::endl;
-        std::cout << "Registration State: " << it->second.getRegistrationState() << std::endl;
-    }
+	for (std::map<int, Client>::iterator it = clientMap.begin(); it != clientMap.end(); ++it) {
+		std::cout << "Client <" << it->first << "> Nickname: " << it->second.getNickName() << std::endl;
+		std::cout << "Username: " << it->second.getUserName() << std::endl;
+		std::cout << "Real Name: " << it->second.getRealName() << std::endl;
+		std::cout << "Registration State: " << it->second.getRegistrationState() << std::endl;
+	}
 }
 
-void Server::closeClientsFd() {
-    for (std::map<int, Client>::iterator it = clientMap.begin(); it != clientMap.end(); ++it) {
-        close(it->first);
-    }
-    close(this->SersocketFD);
-}
 
-int Server::getClientNick(std::string nick, int fd) {
-    for (std::map<int, Client>::iterator it = clientMap.begin(); it != clientMap.end(); ++it)   {
-        if (it->second.getNickname() == nick && it->first != fd)
-            return (it->first);
-    }
-    return (-1);
-}
 
 void    Server::sendOneToOne(Client& cli, std::string dest, std::string message)    {
-    int destFd = getClientNick(dest, cli.getFd());
-    if (destFd == -1)
-        throw std::runtime_error(dest + " :No such nick/channel\n");
-    std::string newmsg = ":" + cli.getNickname() + " PRIVMSG " + dest + " : "+ message + "\r\n";
-    
-    send(destFd, newmsg.c_str(), newmsg.size(), 0);
+	int destFd = isClientExist(dest, cli.getFd());
+	if (destFd == -1)
+		throw std::runtime_error(dest + " :No such Nickname\n");
+	std::string newmsg = ":" + cli.getNickName() + " PRIVMSG " + dest + " : " + message + "\r\n";
+	
+	send(destFd, newmsg.c_str(), newmsg.size(), 0);
 }
 
 void    Server::sendToChannel(Client &cli, std::string dest, std::string message) {
@@ -357,4 +506,5 @@ void    Server::parc(std::string message, Client& cli) {
     else
         send(cli.getFd(), "ACH HAD L INPUT", 15, 0);
 }
+
 

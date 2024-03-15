@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 12:33:51 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/12 03:50:06 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/14 21:27:51 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,14 @@
 #include <string>
 #include <csignal>
 
+
+typedef struct message
+{
+	std::string prefix;
+	std::string cmd;
+	std::deque<std::string> params;
+} t_parc;
+
 class Client
 {
 	private:
@@ -54,9 +62,9 @@ class Client
 		void	increment_channels_joined();
 		void setRegistrationState(int newState);
 		
-
-		int		getFd( void ) const;
-		std::string	getNickname() const;
+	public:
+		int			getFd( void ) const;
+		std::string	getNickName() const;
 		std::string	getRealName() const;
 		std::string	getUsername() const;
 		int getRegistrationState() const;
@@ -91,19 +99,22 @@ class	Channel	{
 
 
 class Server	{
-private:
-	std::string	Servername;
-	int			port;
-	std::string	password;
-	int			SersocketFD;
+	private:
+		std::string	Servername;
+		std::string	Version;
+		std::string	CreateDate;
+		std::string	ChannelModes;
+		int			port;
+		std::string	password;
+		int			SersocketFD;
 
-	std::map<int, Client>	clientMap;
-	std::vector<Channel>	channels;
+		std::map<int, Client>	clientMap;
+		std::vector<Channel>	channels;
 
-public:
-	static bool		Signal;
-	Server(int port, std::string pass);
-	~Server();
+	public:
+		static bool		Signal;
+		Server(int port, std::string pass);
+		~Server();
 
 	void init(void);
 	
