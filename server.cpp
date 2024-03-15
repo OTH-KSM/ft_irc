@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/14 21:45:23 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/15 01:21:33 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,6 +157,7 @@ void	Server::handleUserCommand(t_parc &parc, Client& cli)	{
 *| | | |   | |   | |_| | |  _|   | |_) |   | |     | | | | | |\/| | | |\/| |   / _ \   |  \| | | | | | \___ \ 
 *| |_| |   | |   |  _  | | |___  |  _ <    | |___  | |_| | | |  | | | |  | |  / ___ \  | |\  | | |_| |  ___) |
 * \___/    |_|   |_| |_| |_____| |_| \_\    \____|  \___/  |_|  |_| |_|  |_| /_/   \_\ |_| \_| |____/  |____/ 
+* OTHER COMMANDS SECTION STARTS HERE
 */
 
 void	Server::handleWhoisCommand(t_parc &parc, Client& cli)	{
@@ -195,6 +196,7 @@ void	Server::handlePrivmsgCommand(t_parc &parc, Client& cli)	{
 *| |  _  |  _|   |  \| | |  _|   | |_) |   / _ \   | |    
 *| |_| | | |___  | |\  | | |___  |  _ <   / ___ \  | |___ 
 * \____| |_____| |_| \_| |_____| |_| \_\ /_/   \_\ |_____|
+* GENERAL SECTION STARTS HERE
 */
 
 void Server::printClients() {
