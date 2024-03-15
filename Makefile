@@ -1,5 +1,5 @@
 CXX = c++ -fsanitize=address
-CPPFLAGS = -Wall -Wextra -Werror
+CPPFLAGS = -Wall -Wextra -Werror -std=c++98
 SRC = main.cpp server.cpp client.cpp channel.cpp
 OBJ = $(SRC:.cpp=.o)
 RM = rm -rf

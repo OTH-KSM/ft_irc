@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 12:33:51 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/12 03:50:06 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/14 21:27:51 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,14 @@
 #include <string>
 #include <csignal>
 
+
+typedef struct message
+{
+	std::string prefix;
+	std::string cmd;
+	std::deque<std::string> params;
+} t_parc;
+
 class Client
 {
 	private:
@@ -46,24 +54,22 @@ class Client
 		Client();
 		~Client();
 
-
-		void	setFd(int fd);
-		void	setNickName(std::string nick);
-		void	setRealName(std::string real);
-		void	setUsername(std::string user);
-		void	increment_channels_joined();
-		void setRegistrationState(int newState);
+	public:
+		void		setFd(int fd);
+		void		setNickName(std::string nick);
+		void		setRealName(std::string real);
+		void		setUserName(std::string user);
+    void	increment_channels_joined();
+		void 		setRegistrationState(int newState);
 		
-
-		int		getFd( void ) const;
-		std::string	getNickname() const;
+	public:
+		int			getFd( void ) const;
+		std::string	getNickName() const;
 		std::string	getRealName() const;
-		std::string	getUsername() const;
-		int getRegistrationState() const;
-		int getChannelsJoined() const;
-		
-		
-};
+  
+		std::string	getUserName() const;
+		int 		getRegistrationState() const;	
+    int getChannelsJoined() const;
 
 class	Channel	{
 	private:
@@ -85,56 +91,65 @@ class	Channel	{
 		int 				getClientsNumber();
 		
 		int		CheckClientExistInChannel(Client &cli);
-		void    broadcast(std::string   message);
-};
-
+	
 
 
 class Server	{
-private:
-	std::string	Servername;
-	int			port;
-	std::string	password;
-	int			SersocketFD;
+	private:
+		std::string	Servername;
+		std::string	Version;
+		std::string	CreateDate;
+		std::string	ChannelModes;
+		int			port;
+		std::string	password;
+		int			SersocketFD;
 
-	std::map<int, Client>	clientMap;
-	std::vector<Channel>	channels;
+		std::map<int, Client>	clientMap;
+		std::vector<Channel>	channels;
 
-public:
-	static bool		Signal;
-	Server(int port, std::string pass);
-	~Server();
+	public:
+		static bool		Signal;
+		Server(int port, std::string pass);
+		~Server();
 
-	void init(void);
-	
-	int	getFd( void );
-	
-	std::string getServerName( void );
+  
+ 
+		void		init(void);
+		void		parc(std::string message, Client& cli);
 
-	void	printClients( void );
-	void	sendOneToOne(Client& cli, std::string dest, std::string message);
-	void    sendToChannel(Client& cli, std::string dest, std::string message);
-	int		getClientNick(std::string nick, int fd);
-	void 	closeClientsFd();
+	public:
+		int			getFd( void );
+		std::string getServerName( void );
 
-	static void SignalHandler(int signum) {
-        (void)signum;
-        std::cout << std::endl << "Signal Received!" << std::endl;
-        Signal = true;
-    }
-	void parc(std::string message, Client& cli);
+		Client&		getClientByNick(std::string nick);
+		Client&		getClientByFd(int fd);
 
-	int	handleChannel(std::vector<std::string> split_channels, std::vector<std::string> split_keys, Client &cli);
-};
+		
+		void		printClients( void );
+		int			isClientExist(std::string nick, int fd);
+		void		sendOneToOne(Client& cli, std::string dest, std::string message);
+		void    sendToChannel(Client& cli, std::string dest, std::string message);
+		Channel		searchChannel(std::string name);
+		void 		sendInitialServerReplies(Client &cli);
 
-int check_valid_channel_name(std::string channel_name);
+  
+  int	handleChannel(std::vector<std::string> split_channels, std::vector<std::string> split_keys, Client &cli);
+  int check_valid_channel_name(std::string channel_name);
 std::vector<std::string> split(const std::string &s, const std::string &delim);
-typedef struct message
-{
-	std::string prefix;
-	std::string cmd;
-	std::deque<std::string> params;
-} t_parc;
+  
+		static void SignalHandler(int signum) {
+			(void)signum;
+			std::cout << std::endl << "Signal Received!" << std::endl;
+			Signal = true;
+		}
+
+	public:
+		void		handlePassCommand(t_parc &parc, Client& cli);
+		void		handleNickCommand(t_parc &parc, Client& cli);
+		void		handleUserCommand(t_parc &parc, Client& cli);
+		void		handleWhoisCommand(t_parc &parc, Client& cli);
+		void		handlePrivmsgCommand(t_parc &parc, Client& cli);
+};
 
 
 

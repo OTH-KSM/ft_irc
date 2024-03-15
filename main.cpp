@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 12:32:06 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/12 03:45:48 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/14 16:47:36 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,14 +26,13 @@ int main(int argc, char *argv[])    {
         return 1;
     }
     
-    Server      srv(port, argv[2]);
     try {
+        Server      srv(port, argv[2]);
         std::signal(SIGINT, Server::SignalHandler);
         srv.init();
     }
     catch ( std::exception &e )   {
-        srv.printClients();
-        srv.closeClientsFd();
         std::cout << e.what() << std::endl;
+        std::cout << "Server operation has been suspended. Please check the error message above and try again." << std::endl;
     }
 }
