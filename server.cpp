@@ -11,7 +11,33 @@
 /* ************************************************************************** */
 
 #include "header.hpp"
+/************************ Extra ************************/
+int check_valid_channel_name(std::string channel_name)
+{
+    if (channel_name[0] != '#' || channel_name[0] != '@' || channel_name.size() > 200)
+        return(0);
+    for(std::string::iterator ite = channel_name.begin(); ite != channel_name.end(); ite++)
+    {
+        if(*ite == ' ' || *ite == 7 || *ite == ',')
+            return(0);
+    }
+    return(1);
+}
 
+std::vector<std::string> split(const std::string &s, const std::string &delim)
+{
+    std::vector<std::string> ret;
+    size_t pos_start = 0, pos_end, delim_len = delim.length();
+    std::string token;
+    while((pos_end = s.find(delim, pos_start)) != std::string::npos)
+    {
+        token = s.substr(pos_start, pos_end - pos_start);
+        pos_start = pos_end + delim_len;
+        ret.push_back(token);
+    }
+    ret.push_back(s.substr(pos_start));
+    return ret;
+}
 /************************ Server ************************/
 
 Server::Server(int port, std::string pass) :  Servername("YourServer"), port(port), password(pass) {
@@ -70,18 +96,65 @@ void    Server::sendOneToOne(Client& cli, std::string dest, std::string message)
     send(destFd, newmsg.c_str(), newmsg.size(), 0);
 }
 
-void    Server::sendToChannel(std::string dest, std::string message) {
-    (void)dest;
-    (void)message;
+void    Server::sendToChannel(Client &cli, std::string dest, std::string message) {
+    for(std::vector<Channel>::iterator ite = channels.begin(); ite != channels.end(); ite++)
+    {
+        if((*ite).getName() == dest)
+        {
+            std::vector<Client> users = (*ite).get_users();
+            for(std::vector<Client>::iterator ite = users.begin(); ite != users.end(); ite++)
+            {
+                int destFd = (*ite).getFd();
+                if (destFd == -1)
+                    throw std::runtime_error(dest + " :No such nick/channel\n");
+                std::string newmsg = ":" + cli.getNickname() + " PRIVMSG " + dest + " : "+ message + "\r\n";
+                send(destFd, newmsg.c_str(), newmsg.size(), 0);
+            }
+        }
+    }
 }
 
 
-Channel	Server::searchChannel(std::string name) {
-    for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); it++)  {
-        if (it->getName() == name)
-            return *it;
+int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<std::string> split_keys, Client &cli) {
+
+    std::cout << "handlechannel is working" << std::endl;
+    for(size_t i = 0; i < split_channels.size(); i++)
+    {
+        if(check_valid_channel_name(split_channels[i]))
+            continue;
+        for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); it++) {// gotta check keys  
+            if ((*it).getName() == split_channels[i])
+            {
+                if((*it).CheckClientExistInChannel(cli) == 0)
+                {
+                    std::cout << "new client was added to " << (*it).getName() << std::endl;
+                    (*it).addClientToChannel(cli, i, split_keys);
+                    std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*it).getName() << " is " << (*it).getClientsNumber() << std::endl;
+                    return 1; //channel exist
+                }
+                else
+                {
+                    std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*it).getName() << " is " << (*it).getClientsNumber() << std::endl;
+                    return 0; // client already exist in channel;
+                }
+            }
+        }
+        std::cout << "new channel was created " << std::endl;
+        if(split_keys.size() >= i + 1)
+        {
+            Channel new_channel(split_channels[i], split_keys[i]);
+            new_channel.addClientToChannel(cli, i, split_keys); // this client should become a client operator u gotta handle it.
+            channels.push_back(new_channel);
+        }
+        else
+        {
+            Channel new_channel(split_channels[i]);
+            new_channel.addClientToChannel(cli, i, split_keys); // this client should become a client operator u gotta handle it.
+            channels.push_back(new_channel);
+        }
+        std::cout << "channels " << channels.size() << " " << "channel_clients in " << channels[i].getName() << " is " << channels[i].getClientsNumber() << std::endl;
     }
-    return *(channels.end());
+    return 0;
 }
 
 void    Server::init()  {
@@ -92,13 +165,13 @@ void    Server::init()  {
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
     struct addrinfo *bind_address;
-    getaddrinfo("10.11.4.11", "8080", &hints, &bind_address);
+    getaddrinfo(0, "8080", &hints, &bind_address);
 
     if((this->SersocketFD = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol)) == -1)
         throw std::runtime_error("Error in Socket");
     if(bind(this->SersocketFD, bind_address->ai_addr, bind_address->ai_addrlen) != 0)
         throw std::runtime_error("Error in Bind");
-    if (listen(this->SersocketFD, 10) < 0)
+    if (listen(this->SersocketFD, 10) < 0) // gotta change the 10 later
         throw std::runtime_error("Error in Listen");
 
 
@@ -148,7 +221,7 @@ void    Server::init()  {
                         close(i);
                         continue;
                     }
-                    read[bytes_received] = 0;
+                    read[bytes_received] = 0; // setting backslash 0 at the end
                     if (!strcmp(read, "exit\n"))
                         throw std::runtime_error("ohh magad");
                     std::string str(read);
@@ -240,10 +313,19 @@ void    Server::parc(std::string message, Client& cli) {
         cli.setRealName(parc.params[3]);
         cli.setRegistrationState(3);
     }
-    // else if (parc.cmd == "JOIN")    {
-    //     if (searchChannel(parc.params[0]));
-    //         channels.
-    // }
+    else if (parc.cmd == "JOIN")    {
+        if (state != 3)
+            throw std::runtime_error(" :Unexpected JOIN command");
+        if (parc.params.size() < 1)
+            throw std::runtime_error(parc.cmd + " :Not enough parameters");
+        std::vector<std::string> split_channels;
+        std::vector<std::string> split_keys;
+        if (parc.params.size() >= 1)
+            split_channels = split(parc.params[0], ",");
+        if(parc.params.size() >= 2)
+            split_keys = split(parc.params[1], ",");
+        handleChannel(split_channels, split_keys, cli);
+    }
     else if (parc.cmd == "SHOWME")  {
         std::string message;
         
@@ -264,11 +346,13 @@ void    Server::parc(std::string message, Client& cli) {
             throw std::runtime_error(" :Unexpected PRIVMSG command");
         if (parc.params.size() < 2)
             throw std::runtime_error(parc.cmd + " :Not enough parameters");
-        // if (parc.params[0][0] == '#')
-        //     sendToChannel(parc.params[0], parc.params[1]);
-        // else
-        std::cout << std::endl << "<" << parc.params[1] << ">" << std::endl;
+        if (parc.params[0][0] == '#' || parc.params[0][0] == '&')
+            sendToChannel(cli, parc.params[0], parc.params[1]);
+        else
+        {
+            std::cout << std::endl << "<" << parc.params[1] << ">" << std::endl;
             sendOneToOne(cli, parc.params[0], parc.params[1]);
+        }
     }
     else
         send(cli.getFd(), "ACH HAD L INPUT", 15, 0);

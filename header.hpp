@@ -41,6 +41,7 @@ class Client
 		std::string	username;
 		std::string	realname;
 		int			registrationState;
+		int			channels_joined;
 	public:
 		Client();
 		~Client();
@@ -50,6 +51,7 @@ class Client
 		void	setNickName(std::string nick);
 		void	setRealName(std::string real);
 		void	setUsername(std::string user);
+		void	increment_channels_joined();
 		void setRegistrationState(int newState);
 		
 
@@ -58,24 +60,31 @@ class Client
 		std::string	getRealName() const;
 		std::string	getUsername() const;
 		int getRegistrationState() const;
+		int getChannelsJoined() const;
 		
 		
 };
 
 class	Channel	{
 	private:
-		std::string	name;
-		
+		std::string			name;
 		std::vector<Client>	users;
+		bool				needKey;
+		std::string			key;
 	public:
 		Channel();
+		Channel(std::string name) : name(name), needKey(0){}; //name should be transformed to lower (case sensitivity)
+		Channel(std::string name, std::string key) : name(name), needKey(1), key(key){}
 		~Channel();
 
 		void    setName(std::string name);
-		void	addClientToChannel(Client& Cli);
+		void	addClientToChannel(Client& Cli, size_t i, std::vector<std::string> keys);
 
-		std::string getName( void );
+		std::string 		getName( void );
+		std::vector<Client> get_users();
+		int 				getClientsNumber();
 		
+		int		CheckClientExistInChannel(Client &cli);
 		void    broadcast(std::string   message);
 };
 
@@ -104,7 +113,7 @@ public:
 
 	void	printClients( void );
 	void	sendOneToOne(Client& cli, std::string dest, std::string message);
-	void    sendToChannel(std::string dest, std::string message);
+	void    sendToChannel(Client& cli, std::string dest, std::string message);
 	int		getClientNick(std::string nick, int fd);
 	void 	closeClientsFd();
 
@@ -115,9 +124,11 @@ public:
     }
 	void parc(std::string message, Client& cli);
 
-	Channel	searchChannel(std::string name);
+	int	handleChannel(std::vector<std::string> split_channels, std::vector<std::string> split_keys, Client &cli);
 };
 
+int check_valid_channel_name(std::string channel_name);
+std::vector<std::string> split(const std::string &s, const std::string &delim);
 typedef struct message
 {
 	std::string prefix;

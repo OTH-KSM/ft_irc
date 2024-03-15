@@ -12,7 +12,7 @@
 
 #include "header.hpp"
 
-Client::Client() : registrationState(0)   {
+Client::Client() : registrationState(0) , channels_joined(0)  {
     
 }
 
@@ -38,6 +38,9 @@ void Client::setRegistrationState(int newState) {
     registrationState = newState;
 }
 
+void    Client::increment_channels_joined(){
+    channels_joined++;
+}
 int     Client::getFd( void )   const   {
     return this->FD;
 }
@@ -56,4 +59,8 @@ std::string Client::getRealName() const {
 
 int Client::getRegistrationState() const {
     return registrationState;
+}
+
+int Client::getChannelsJoined() const {
+    return channels_joined;
 }
