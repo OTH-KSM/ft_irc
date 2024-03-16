@@ -6,38 +6,11 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/15 01:21:33 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/16 18:10:14 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header.hpp"
-/************************ Extra ************************/
-int check_valid_channel_name(std::string channel_name)
-{
-    if (channel_name[0] != '#' || channel_name[0] != '@' || channel_name.size() > 200)
-        return(0);
-    for(std::string::iterator ite = channel_name.begin(); ite != channel_name.end(); ite++)
-    {
-        if(*ite == ' ' || *ite == 7 || *ite == ',')
-            return(0);
-    }
-    return(1);
-}
-
-std::vector<std::string> split(const std::string &s, const std::string &delim)
-{
-    std::vector<std::string> ret;
-    size_t pos_start = 0, pos_end, delim_len = delim.length();
-    std::string token;
-    while((pos_end = s.find(delim, pos_start)) != std::string::npos)
-    {
-        token = s.substr(pos_start, pos_end - pos_start);
-        pos_start = pos_end + delim_len;
-        ret.push_back(token);
-    }
-    ret.push_back(s.substr(pos_start));
-    return ret;
-}
 /************************ Server ************************/
 
 Server::Server(int port, std::string pass) :  Servername("YourServer"), Version("1.0"), port(port), password(pass) {
@@ -125,11 +98,11 @@ Client&	Server::getClientByFd(int fd) {
 	return clientMap[fd];
 }
 
-/*             _   _                _   _  __ _           _   _             
-*  __ _ _   _| |_| |__   ___ _ __ | |_(_)/ _(_) ___ __ _| |_(_) ___  _ __  
-* / _` | | | | __| '_ \ / _ \ '_ \| __| | |_| |/ __/ _` | __| |/ _ \| '_ \ 
-*| (_| | |_| | |_| | | |  __/ | | | |_| |  _| | (_| (_| | |_| | (_) | | | |
-* \__,_|\__,_|\__|_| |_|\___|_| |_|\__|_|_| |_|\___\__,_|\__|_|\___/|_| |_|
+/*                 _     _                       __   _                  _     _                  
+*  __ _   _   _  | |_  | |__     ___   _ __    / _| (_)   ___    __ _  | |_   (_)   ___    _ __   
+* / _` | | | | | | __| | '_ \   / _ \ | '_ \  | |_  | |  / __|  / _` | | __|  | |  / _ \  | '_ \  
+*| (_| | | |_| | | |_  | | | | |  __/ | | | | |  _| | | | (__  | (_| | | |_   | | | (_) | | | | | 
+* \__,_|  \__,_|  \__| |_| |_|  \___| |_| |_| |_|   |_|  \___|  \__,_|  \__|  |_|  \___/  |_| |_| 
 * AUTHENTIFICATION SECTION STARTS HERE
 */
 
@@ -180,6 +153,41 @@ void	Server::handleUserCommand(t_parc &parc, Client& cli)	{
 	sendInitialServerReplies(cli);
 }
 
+/*  ____   _                                      _  
+* / ___| | |__     __ _   _ __    _ __     ___  | | 
+*| |     | '_ \   / _` | | '_ \  | '_ \   / _ \ | | 
+*| |___  | | | | | (_| | | | | | | | | | |  __/ | | 
+* \____| |_| |_|  \__,_| |_| |_| |_| |_|  \___| |_|
+* CHANNEL SECTION STARTS HERE
+*/
+
+int Server::check_valid_channel_name(std::string channel_name)
+{
+    if (channel_name[0] != '#' || channel_name[0] != '@' || channel_name.size() > 200)
+        return(0);
+    for(std::string::iterator ite = channel_name.begin(); ite != channel_name.end(); ite++)
+    {
+        if(*ite == ' ' || *ite == 7 || *ite == ',')
+            return(0);
+    }
+    return(1);
+}
+
+std::vector<std::string> Server::split(const std::string &s, const std::string &delim)
+{
+    std::vector<std::string> ret;
+    size_t pos_start = 0, pos_end, delim_len = delim.length();
+    std::string token;
+    while((pos_end = s.find(delim, pos_start)) != std::string::npos)
+    {
+        token = s.substr(pos_start, pos_end - pos_start);
+        pos_start = pos_end + delim_len;
+        ret.push_back(token);
+    }
+    ret.push_back(s.substr(pos_start));
+    return ret;
+}
+
 /*  ___    _____   _   _   _____   ____       ____    ___    __  __   __  __      _      _   _   ____    ____  
 * / _ \  |_   _| | | | | | ____| |  _ \     / ___|  / _ \  |  \/  | |  \/  |    / \    | \ | | |  _ \  / ___| 
 *| | | |   | |   | |_| | |  _|   | |_) |   | |     | | | | | |\/| | | |\/| |   / _ \   |  \| | | | | | \___ \ 
@@ -195,7 +203,7 @@ void	Server::handleWhoisCommand(t_parc &parc, Client& cli)	{
 
 		std::string nick = targetClient.getNickName(); 
 		std::string user = targetClient.getUserName(); 
-		// std::string host = targetClient.getHostname(); // The hostname of the client
+		// std::string host = targetClient.getHostname();
 		std::string realName = targetClient.getRealName(); 
 		std::string serverName = this->Servername; 
 		std::string serverInfo = "The best IRC server Ever";
@@ -211,13 +219,46 @@ void	Server::handleWhoisCommand(t_parc &parc, Client& cli)	{
 }
 
 void	Server::handlePrivmsgCommand(t_parc &parc, Client& cli)	{
-	int state = cli.getRegistrationState();
-	if (state != 3)
-		throw std::runtime_error("451 * :You have not registered");
-	if (parc.params.size() < 2)
-		throw std::runtime_error("461 * " + parc.cmd + " :Not enough parameters");
-	sendOneToOne(cli, parc.params[0], parc.params[1]);
+    int state = cli.getRegistrationState();
+    if (state != 3)
+        throw std::runtime_error("451 * :You have not registered");
+    if (parc.params.size() < 2)
+        throw std::runtime_error("461 * " + parc.cmd + " :Not enough parameters");
+    if (parc.params[0][0] == '#' || parc.params[0][0] == '&')
+        sendToChannel(cli, parc.params[0], parc.params[1]);
+    else
+    {
+        std::cout << std::endl << "<" << parc.params[1] << ">" << std::endl;
+        sendOneToOne(cli, parc.params[0], parc.params[1]);
+    }
 }
+
+void    Server::handleJoinCommand(t_parc &parc, Client& cli)    {
+    int state = cli.getRegistrationState();
+    if (state != 3)
+        throw std::runtime_error("451 * :You have not registered");
+    if (parc.params.size() < 1)
+        throw std::runtime_error(parc.cmd + " :Not enough parameters");
+    std::vector<std::string> split_channels;
+    std::vector<std::string> split_keys;
+    if (parc.params.size() >= 1)
+        split_channels = split(parc.params[0], ",");
+    if(parc.params.size() >= 2)
+        split_keys = split(parc.params[1], ",");
+    handleChannel(split_channels, split_keys, cli);
+}
+
+// void    Server::handleQuitCommand(t_parc &parc, Client& cli)    {
+//     (void  )parc;
+//     int state = cli.getRegistrationState();
+//     if (state != 3)
+//         throw std::runtime_error("451 * :You have not registered");
+//     std::string message = "ERROR Closing Link: " + cli.getNickName() + " (Client Quit)\r\n";
+//     send(cli.getFd(), message.c_str(), message.size(), 0);
+// 	int	fd = cli.getFd();
+//     close(fd);
+// 	this->clientMap.erase(fd);
+// }
 
 /*  ____   _____   _   _   _____   ____       _      _     
 * / ___| | ____| | \ | | | ____| |  _ \     / \    | |    
@@ -236,29 +277,27 @@ void Server::printClients() {
 	}
 }
 
-
-
 void    Server::sendOneToOne(Client& cli, std::string dest, std::string message)    {
 	int destFd = isClientExist(dest, cli.getFd());
 	if (destFd == -1)
 		throw std::runtime_error(dest + " :No such Nickname\n");
 	std::string newmsg = ":" + cli.getNickName() + " PRIVMSG " + dest + " : " + message + "\r\n";
-	
 	send(destFd, newmsg.c_str(), newmsg.size(), 0);
 }
 
 void    Server::sendToChannel(Client &cli, std::string dest, std::string message) {
-    for(std::vector<Channel>::iterator ite = channels.begin(); ite != channels.end(); ite++)
+    for(std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); it++)
     {
-        if((*ite).getName() == dest)
+        if((*it).getName() == dest)
         {
-            std::vector<Client> users = (*ite).get_users();
+            std::vector<Client> users = (*it).get_users();
             for(std::vector<Client>::iterator ite = users.begin(); ite != users.end(); ite++)
             {
                 int destFd = (*ite).getFd();
                 if (destFd == -1)
                     throw std::runtime_error(dest + " :No such nick/channel\n");
-                std::string newmsg = ":" + cli.getNickname() + " PRIVMSG " + dest + " : "+ message + "\r\n";
+					std::cout << (*it).getName() << std::endl;
+                std::string newmsg = ":" + cli.getNickName() + " PRIVMSG " + (*it).getName() + " :" + message + "\r\n"; 
                 send(destFd, newmsg.c_str(), newmsg.size(), 0);
             }
         }
@@ -308,90 +347,6 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
     return 0;
 }
 
-void    Server::init()  {
-    this->port = 8080;
-    struct addrinfo hints;
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
-    struct addrinfo *bind_address;
-    getaddrinfo(0, "8080", &hints, &bind_address);
-
-    if((this->SersocketFD = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol)) == -1)
-        throw std::runtime_error("Error in Socket");
-    if(bind(this->SersocketFD, bind_address->ai_addr, bind_address->ai_addrlen) != 0)
-        throw std::runtime_error("Error in Bind");
-    if (listen(this->SersocketFD, 10) < 0) // gotta change the 10 later
-        throw std::runtime_error("Error in Listen");
-
-
-    fd_set master;
-    FD_ZERO(&master);
-    FD_SET(this->SersocketFD, &master);
-    int max_socket = this->SersocketFD;
-    std::cout << "Waiting for connections...." << std::endl;
-
-
-    while(this->Signal == false)
-    {
-        fd_set reads;
-        reads = master;
-        if(select(max_socket + 1, &reads, 0, 0, 0) < 0)
-            throw std::runtime_error("Error in Select");
-        int i;
-        for(i = 0; i <= max_socket; ++i)
-        {
-            if(FD_ISSET(i, &reads))
-            {
-                if(i == this->SersocketFD)
-                {
-                    Client  cli;
-                    struct sockaddr_storage client_address;
-                    socklen_t client_len = sizeof(client_address);
-                    int socket_client;
-                    if ((socket_client = accept(this->SersocketFD, (struct sockaddr *)&client_address, &client_len)) < 0)
-                        throw std::runtime_error("Error in Accept");
-                    FD_SET(socket_client, &master);
-                    if(socket_client > max_socket)
-                        max_socket = socket_client;
-                    cli.setFd(socket_client);
-                    // Add the new client socket to the vector
-                    this->clientMap.insert(std::make_pair(socket_client, cli));
-                    char address_buffer[100];
-                    getnameinfo((struct sockaddr *)&client_address, client_len, address_buffer, sizeof(address_buffer), 0, 0, NI_NUMERICHOST);
-                    std::cout << "Client <" << socket_client << "> Connected" << std::endl;
-                }
-                else
-                {
-                    char read[1024];
-                    int bytes_received = recv(i, read, 1024, 0);
-                    if(bytes_received < 1)
-                    {
-                        FD_CLR(i, &master);
-                        close(i);
-                        continue;
-                    }
-                    read[bytes_received] = 0; // setting backslash 0 at the end
-                    if (!strcmp(read, "exit\n"))
-                        throw std::runtime_error("ohh magad");
-                    std::string str(read);
-                    try
-                    {
-                        Server::parc(str, clientMap[i]);
-                    }
-                    catch(const std::exception& e)
-                    {
-                        std::string cont = e.what();
-                        std::string message = ":" + this->Servername + " 000 " + clientMap[i].getNickname() + cont + "\r\n";
-                        send(i, message.c_str(), message.size(), 0);
-                    }
-                }
-            }
-        }
-    }
-
-
 Channel	Server::searchChannel(std::string name) {
 	for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); it++)  {
 		if (it->getName() == name)
@@ -408,7 +363,7 @@ void    Server::init()  {
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 	struct addrinfo *bind_address;
-	getaddrinfo("10.11.1.11", "8080", &hints, &bind_address);
+	getaddrinfo("10.11.2.10", "8080", &hints, &bind_address);
 
 	if((this->SersocketFD = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol)) == -1)
 		throw std::runtime_error("Error in Socket");
@@ -469,6 +424,7 @@ void    Server::init()  {
 					std::string str(read);
 					try
 					{
+                        std::cout << "<<<" << str << ">>>" << std::endl;
 						Server::parc(str, clientMap[i]);
 					}
 					catch(const std::exception& e)
@@ -491,7 +447,7 @@ void    Server::parc(std::string message, Client& cli) {
 	std::string temp;
 	std::stringstream cc;
 
-	message.erase(message.size() - 2);
+	message.erase(message.size() - 1);
 	size_t prefixEnd = message.find(":", 2);
 	if (prefixEnd != std::string::npos) {
 		std::string prefix = message.substr(prefixEnd + 1, message.length() - 2);
@@ -533,39 +489,15 @@ void    Server::parc(std::string message, Client& cli) {
 		else if (parc.cmd == "USER")
 			handleUserCommand(parc, cli);
 	}
-  else if (parc.cmd == "JOIN")    {
-    if (state != 3)
-        throw std::runtime_error(" :Unexpected JOIN command");
-    if (parc.params.size() < 1)
-        throw std::runtime_error(parc.cmd + " :Not enough parameters");
-    std::vector<std::string> split_channels;
-    std::vector<std::string> split_keys;
-    if (parc.params.size() >= 1)
-        split_channels = split(parc.params[0], ",");
-    if(parc.params.size() >= 2)
-        split_keys = split(parc.params[1], ",");
-    handleChannel(split_channels, split_keys, cli);
-}
+    else if (parc.cmd == "JOIN")
+        handleJoinCommand(parc, cli);
 	else if (parc.cmd == "WHOIS")
 		handleWhoisCommand(parc, cli);
 	else if (parc.cmd == "PRIVMSG")
 		handlePrivmsgCommand(parc, cli);
-   else if (parc.cmd == "PRIVMSG") {
-          if (state != 3)
-              throw std::runtime_error(" :Unexpected PRIVMSG command");
-          if (parc.params.size() < 2)
-              throw std::runtime_error(parc.cmd + " :Not enough parameters");
-          if (parc.params[0][0] == '#' || parc.params[0][0] == '&')
-              sendToChannel(cli, parc.params[0], parc.params[1]);
-          else
-          {
-              std::cout << std::endl << "<" << parc.params[1] << ">" << std::endl;
-              sendOneToOne(cli, parc.params[0], parc.params[1]);
-          }
-      }
-	else if (parc.cmd == "PING" || parc.cmd == "PONG")	{
-		
-  }
+    // else if (parc.cmd == "QUIT")    {
+    //     handleQuitCommand(parc, cli);
+    // }
 }
 
 

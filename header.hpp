@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 12:33:51 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/14 21:27:51 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/16 17:08:59 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,7 @@ class Client
 		std::string	getUserName() const;
 		int 		getRegistrationState() const;	
     int getChannelsJoined() const;
+};
 
 class	Channel	{
 	private:
@@ -91,7 +92,7 @@ class	Channel	{
 		int 				getClientsNumber();
 		
 		int		CheckClientExistInChannel(Client &cli);
-	
+};
 
 
 class Server	{
@@ -133,9 +134,9 @@ class Server	{
 		void 		sendInitialServerReplies(Client &cli);
 
   
-  int	handleChannel(std::vector<std::string> split_channels, std::vector<std::string> split_keys, Client &cli);
-  int check_valid_channel_name(std::string channel_name);
-std::vector<std::string> split(const std::string &s, const std::string &delim);
+		int	handleChannel(std::vector<std::string> split_channels, std::vector<std::string> split_keys, Client &cli);
+		int check_valid_channel_name(std::string channel_name);
+		std::vector<std::string> split(const std::string &s, const std::string &delim);
   
 		static void SignalHandler(int signum) {
 			(void)signum;
@@ -149,6 +150,8 @@ std::vector<std::string> split(const std::string &s, const std::string &delim);
 		void		handleUserCommand(t_parc &parc, Client& cli);
 		void		handleWhoisCommand(t_parc &parc, Client& cli);
 		void		handlePrivmsgCommand(t_parc &parc, Client& cli);
+		void    	handleJoinCommand(t_parc &parc, Client& cli);
+		void    	handleQuitCommand(t_parc &parc, Client& cli);
 };
 
 

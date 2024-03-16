@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Channel.cpp                                        :+:      :+:    :+:   */
+/*   channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 00:48:12 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/10 01:33:50 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/15 04:59:18 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,16 +51,16 @@ int  Channel::CheckClientExistInChannel(Client &cli)
 {
     for(std::vector<Client>::iterator ite = users.begin(); ite != users.end(); ite++)
     {
-        if((*ite).getNickname() == cli.getNickname())
+        if((*ite).getNickName() == cli.getNickName())
             return(1);
     }
     return(0);
 }
-void Channel::broadcast(std::string message) {
-    for (std::vector<Client>::iterator it = users.begin(); it != users.end(); it++) {
-        send((*it).getFd(), message.c_str(), message.size(), 0);
-    }
-}
+// void Channel::broadcast(std::string message) {
+//     for (std::vector<Client>::iterator it = users.begin(); it != users.end(); it++) {
+//         send((*it).getFd(), message.c_str(), message.size(), 0);
+//     }
+// }
 
 
 
