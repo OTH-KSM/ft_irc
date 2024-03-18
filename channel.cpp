@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 00:48:12 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/15 04:59:18 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/17 07:03:02 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,12 +56,29 @@ int  Channel::CheckClientExistInChannel(Client &cli)
     }
     return(0);
 }
-// void Channel::broadcast(std::string message) {
-//     for (std::vector<Client>::iterator it = users.begin(); it != users.end(); it++) {
-//         send((*it).getFd(), message.c_str(), message.size(), 0);
-//     }
-// }
+void Channel::broadcastMessage(Client sender, std::string message)
+{
+	for (size_t i = 0; i < this->users.size(); i++)
+	{
+		if (this->users[i].getNickName() == sender.getNickName())
+			continue ;
+		send(this->users[i].getFd(), message.c_str(), message.length(), 0);
+	}
+}
 
+void Channel::removeMember(Server &srv, Client client)
+{
+	for (size_t i = 0; i < this->users.size(); i++)
+	{
+		if (this->users[i].getNickName() == client.getNickName())
+		{
+			this->users.erase(this->users.begin() + i);
+			break ;
+		}
+	}
+	if (!this->get_users().size())
+		srv.removeChannel(*this);
+}
 
 
 

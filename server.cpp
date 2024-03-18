@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/16 18:10:14 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/17 07:18:52 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,11 @@ Client&	Server::getClientByNick(std::string nick) {
 Client&	Server::getClientByFd(int fd) {
 	return clientMap[fd];
 }
+
+std::vector<Channel> Server::getChannels() {
+	return this->channels;
+}
+
 
 /*                 _     _                       __   _                  _     _                  
 *  __ _   _   _  | |_  | |__     ___   _ __    / _| (_)   ___    __ _  | |_   (_)   ___    _ __   
@@ -248,17 +253,32 @@ void    Server::handleJoinCommand(t_parc &parc, Client& cli)    {
     handleChannel(split_channels, split_keys, cli);
 }
 
-// void    Server::handleQuitCommand(t_parc &parc, Client& cli)    {
-//     (void  )parc;
-//     int state = cli.getRegistrationState();
-//     if (state != 3)
-//         throw std::runtime_error("451 * :You have not registered");
-//     std::string message = "ERROR Closing Link: " + cli.getNickName() + " (Client Quit)\r\n";
-//     send(cli.getFd(), message.c_str(), message.size(), 0);
-// 	int	fd = cli.getFd();
-//     close(fd);
-// 	this->clientMap.erase(fd);
-// }
+void    Server::handleQuitCommand(Server &srv, t_parc &parc, Client& cli)    {
+	std::vector<Channel>	channels = getChannels();
+	std::string				quitMessage = parc.params.size() > 0 ? parc.params[0] : "No reason given";
+	for (size_t j = 0; j < channels.size(); j++)
+	{
+		if (channels[j].CheckClientExistInChannel(cli))
+		{
+			channels[j].broadcastMessage(cli, ":" + cli.getNickName() + " QUIT :" + quitMessage + "\r\n");
+			channels[j].removeMember(srv, cli);
+		}
+	}
+	close(cli.getFd());
+}
+
+
+void Server::removeChannel(Channel channel)
+{
+	for (size_t i = 0; i < this->channels.size(); i++)
+	{
+		if (this->channels[i].getName() == channel.getName())
+		{
+			this->channels.erase(this->channels.begin() + i);
+			return;
+		}
+	}
+}
 
 /*  ____   _____   _   _   _____   ____       _      _     
 * / ___| | ____| | \ | | | ____| |  _ \     / \    | |    
@@ -297,7 +317,7 @@ void    Server::sendToChannel(Client &cli, std::string dest, std::string message
                 if (destFd == -1)
                     throw std::runtime_error(dest + " :No such nick/channel\n");
 					std::cout << (*it).getName() << std::endl;
-                std::string newmsg = ":" + cli.getNickName() + " PRIVMSG " + (*it).getName() + " :" + message + "\r\n"; 
+                std::string newmsg = ":" + cli.getNickName() + " PRIVMSG " + (*it).getName() + " :" + message + "\r\n";
                 send(destFd, newmsg.c_str(), newmsg.size(), 0);
             }
         }
@@ -318,7 +338,7 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
                 if((*it).CheckClientExistInChannel(cli) == 0)
                 {
                     std::cout << "new client was added to " << (*it).getName() << std::endl;
-                    (*it).addClientToChannel(cli, i, split_keys);
+                    (*it ).addClientToChannel(cli, i, split_keys);
                     std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*it).getName() << " is " << (*it).getClientsNumber() << std::endl;
                     return 1; //channel exist
                 }
@@ -363,7 +383,7 @@ void    Server::init()  {
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 	struct addrinfo *bind_address;
-	getaddrinfo("10.11.2.10", "8080", &hints, &bind_address);
+	getaddrinfo("10.11.13.9", "8080", &hints, &bind_address);
 
 	if((this->SersocketFD = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol)) == -1)
 		throw std::runtime_error("Error in Socket");
@@ -495,9 +515,10 @@ void    Server::parc(std::string message, Client& cli) {
 		handleWhoisCommand(parc, cli);
 	else if (parc.cmd == "PRIVMSG")
 		handlePrivmsgCommand(parc, cli);
-    // else if (parc.cmd == "QUIT")    {
-    //     handleQuitCommand(parc, cli);
-    // }
+    else if (parc.cmd == "QUIT")
+        handleQuitCommand(*this, parc, cli);
+	else if (parc.cmd == "MODE")
+		handleModeCommand(parc, cli);
 }
 
 

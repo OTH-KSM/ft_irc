@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/09 17:50:00 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/15 04:58:48 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/16 21:10:01 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ void Client::setRegistrationState(int newState) {
 void    Client::increment_channels_joined(){
     channels_joined++;
 }
+
 int     Client::getFd( void )   const   {
     return this->FD;
 }

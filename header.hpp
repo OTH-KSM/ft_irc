@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 12:33:51 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/16 17:08:59 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/17 07:05:04 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,8 @@ typedef struct message
 	std::deque<std::string> params;
 } t_parc;
 
+class Server;
+
 class Client
 {
 	private:
@@ -59,17 +61,17 @@ class Client
 		void		setNickName(std::string nick);
 		void		setRealName(std::string real);
 		void		setUserName(std::string user);
-    void	increment_channels_joined();
 		void 		setRegistrationState(int newState);
 		
 	public:
 		int			getFd( void ) const;
 		std::string	getNickName() const;
-		std::string	getRealName() const;
-  
 		std::string	getUserName() const;
+		std::string	getRealName() const;
 		int 		getRegistrationState() const;	
-    int getChannelsJoined() const;
+	public:
+    	void		increment_channels_joined();
+    	int 		getChannelsJoined() const;
 };
 
 class	Channel	{
@@ -92,6 +94,11 @@ class	Channel	{
 		int 				getClientsNumber();
 		
 		int		CheckClientExistInChannel(Client &cli);
+
+		/* the new part */
+		void	broadcastMessage(Client sender, std::string message);
+		void	removeMember(Server &srv, Client client);
+		
 };
 
 
@@ -121,9 +128,9 @@ class Server	{
 	public:
 		int			getFd( void );
 		std::string getServerName( void );
-
 		Client&		getClientByNick(std::string nick);
 		Client&		getClientByFd(int fd);
+		std::vector<Channel> getChannels();
 
 		
 		void		printClients( void );
@@ -151,7 +158,11 @@ class Server	{
 		void		handleWhoisCommand(t_parc &parc, Client& cli);
 		void		handlePrivmsgCommand(t_parc &parc, Client& cli);
 		void    	handleJoinCommand(t_parc &parc, Client& cli);
-		void    	handleQuitCommand(t_parc &parc, Client& cli);
+		void    	handleQuitCommand(Server &srv, t_parc &parc, Client& cli);
+
+	public: // the new part
+		void 	removeChannel(Channel channel);
+		
 };
 
 
