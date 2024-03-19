@@ -6,11 +6,12 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 00:48:12 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/17 07:03:02 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/19 08:16:34 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header.hpp"
+
 
 Channel::Channel()  {
     
@@ -18,6 +19,76 @@ Channel::Channel()  {
 
 Channel::~Channel() {
     
+}
+
+void Channel::listUsers() const {
+    std::cout  << "LIsting Users" << std::endl << "====================" << std::endl;
+    for (const auto& user : users) {
+        std::cout << user.getNickName() << std::endl;
+    }
+}
+/*                                        _   
+* _ __   _____      __  _ __   __ _ _ __| |_ 
+*| '_ \ / _ \ \ /\ / / | '_ \ / _` | '__| __|
+*| | | |  __/\ V  V /  | |_) | (_| | |  | |_ 
+*|_| |_|\___| \_/\_/   | .__/ \__,_|_|   \__|
+*                      |_|                   
+*/
+
+/* Getters */
+
+bool	Channel::isValidChannelName(const std::string name)
+{
+	if (name[0] != '#' && name[0] != '&')
+		return false;
+	for (size_t i = 1; i < name.size(); i++)
+	{
+		if (name[i] == ',' || name[i] == ' ')
+			return false;
+	}
+	return true;
+}
+
+bool    Channel::getInviteOnly() {
+    return isInviteOnly;
+}
+
+bool   Channel::getTopicRestricted() {
+    return topicRestricted;
+}
+
+std::string Channel::getTopic() {
+    return topic;
+}
+
+int     Channel::getLimitedUsers() {
+    return limitedUsers;
+}
+
+std::string Channel::getKey() {
+    return key;
+}
+
+/* Setters */
+
+void    Channel::setInviteOnly(bool isInviteOnly) {
+    this->isInviteOnly = isInviteOnly;
+}
+
+void    Channel::setTopicRestricted(bool isTopicRestricted) {
+    this->topicRestricted = isTopicRestricted;
+}
+
+void    Channel::setTopic(std::string topic) {
+    this->topic = topic;
+}
+
+void    Channel::setLimitedUsers(int limitedUsers) {
+    this->limitedUsers = limitedUsers;
+}
+
+void    Channel::setKey(std::string key) {
+    this->key = key;
 }
 
 void Channel::addClientToChannel(Client& Cli, size_t i, std::vector<std::string> keys) {
@@ -51,16 +122,17 @@ int  Channel::CheckClientExistInChannel(Client &cli)
 {
     for(std::vector<Client>::iterator ite = users.begin(); ite != users.end(); ite++)
     {
-        if((*ite).getNickName() == cli.getNickName())
+        if((*ite).getNickName() == cli.getNickName())   {
             return(1);
+        }
     }
     return(0);
 }
-void Channel::broadcastMessage(Client sender, std::string message)
+void Channel::broadcastMessage(Client *sender, std::string message)
 {
 	for (size_t i = 0; i < this->users.size(); i++)
 	{
-		if (this->users[i].getNickName() == sender.getNickName())
+		if (sender && this->users[i].getNickName() == sender->getNickName())
 			continue ;
 		send(this->users[i].getFd(), message.c_str(), message.length(), 0);
 	}

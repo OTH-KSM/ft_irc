@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 12:33:51 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/17 07:05:04 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/19 05:22:10 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,12 +74,37 @@ class Client
     	int 		getChannelsJoined() const;
 };
 
+
 class	Channel	{
 	private:
 		std::string			name;
 		std::vector<Client>	users;
 		bool				needKey;
 		std::string			key;
+		/*new part*/
+		bool				isInviteOnly;
+		bool				topicRestricted;
+		std::string			topic;
+		int					limitedUsers; // -1 if no limitUsers
+	
+	public:	// the new part
+		static bool			isValidChannelName(const std::string name);
+		bool			getInviteOnly();
+		bool			getTopicRestricted();
+		std::string		getTopic();
+		int				getLimitedUsers();
+		std::string		getKey();
+		std::string 	getChannelModes(void);
+
+
+		void			setInviteOnly(bool isInviteOnly);
+		void			setTopicRestricted(bool isTopicRestricted);
+		void			setTopic(std::string topic);
+		void			setLimitedUsers(int limitedUsers);
+		void			setKey(std::string key);
+
+		void 		listUsers() const;
+
 	public:
 		Channel();
 		Channel(std::string name) : name(name), needKey(0){}; //name should be transformed to lower (case sensitivity)
@@ -96,7 +121,7 @@ class	Channel	{
 		int		CheckClientExistInChannel(Client &cli);
 
 		/* the new part */
-		void	broadcastMessage(Client sender, std::string message);
+		void	broadcastMessage(Client *sender, std::string message);
 		void	removeMember(Server &srv, Client client);
 		
 };
@@ -131,19 +156,20 @@ class Server	{
 		Client&		getClientByNick(std::string nick);
 		Client&		getClientByFd(int fd);
 		std::vector<Channel> getChannels();
+		Channel*	getChannelByName(std::string name);
 
 		
 		void		printClients( void );
 		int			isClientExist(std::string nick, int fd);
 		void		sendOneToOne(Client& cli, std::string dest, std::string message);
-		void    sendToChannel(Client& cli, std::string dest, std::string message);
+		void    	sendToChannel(Client& cli, std::string dest, std::string message);
 		Channel		searchChannel(std::string name);
 		void 		sendInitialServerReplies(Client &cli);
 
   
-		int	handleChannel(std::vector<std::string> split_channels, std::vector<std::string> split_keys, Client &cli);
-		int check_valid_channel_name(std::string channel_name);
-		std::vector<std::string> split(const std::string &s, const std::string &delim);
+		int							handleChannel(std::vector<std::string> split_channels, std::vector<std::string> split_keys, Client &cli);
+		int 						check_valid_channel_name(std::string channel_name);
+		std::vector<std::string>	split(const std::string &s, const std::string &delim);
   
 		static void SignalHandler(int signum) {
 			(void)signum;
@@ -159,11 +185,19 @@ class Server	{
 		void		handlePrivmsgCommand(t_parc &parc, Client& cli);
 		void    	handleJoinCommand(t_parc &parc, Client& cli);
 		void    	handleQuitCommand(Server &srv, t_parc &parc, Client& cli);
+		void		handleModeCommand(t_parc &parc, Client& cli);
 
 	public: // the new part
 		void 	removeChannel(Channel channel);
+		void	printChannelsAndClients();
 		
 };
+
+void	handleInviteFlag(Channel &channel, bool plusSign);
+void	handleTopicFlag(Channel &channel, bool plusSign);
+void	handleKeyFlag(Channel &channel, bool plusSign, std::string& key);
+bool	isValidNum(const std::string &str);
+void	handleLimitFlag(Channel &channel, bool plusSign, std::string& memberLimit);
 
 
 
