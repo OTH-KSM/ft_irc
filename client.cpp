@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/09 17:50:00 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/16 21:10:01 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/20 07:35:38 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,4 +64,9 @@ int Client::getRegistrationState() const {
 
 int Client::getChannelsJoined() const {
     return channels_joined;
+}
+
+void	Client::addChannelInvitation(const std::string& channel)
+{
+	this->channelInvitations.push_back(channel);
 }

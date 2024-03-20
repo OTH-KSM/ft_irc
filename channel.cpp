@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 00:48:12 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/20 07:18:30 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/20 07:54:38 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,14 +133,14 @@ void Channel::removeOperator(Client &client)
 	}
 }
 
-void Channel::addClientToChannel(Client& cli, size_t i, std::vector<std::string> keys) {
+void Channel::addClientToChannel(Client& cli, size_t i, std::vector<std::string> keys, bool op) {
     if(needKey == 0 || (needKey == 1 && keys.size() >= i + 1 && keys[i] == key)) //check password
     {
         if(cli.getChannelsJoined() == 10)
             throw std::runtime_error(" :Client cant join more than 10 client");
         ChannelMember member;
         member.client = cli;
-        member.isOperator = false;
+        member.isOperator = op;
         this->users.push_back(member);
         cli.increment_channels_joined();// added this cause max channels is 10 for each client
     }

@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 12:33:51 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/20 07:18:15 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/20 07:54:59 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ class Client
 		std::string	realname;
 		int			registrationState;
 		int			channels_joined;
+		std::vector<std::string>	channelInvitations;
 	public:
 		Client();
 		~Client();
@@ -72,6 +73,7 @@ class Client
 	public:
     	void		increment_channels_joined();
     	int 		getChannelsJoined() const;
+		void		addChannelInvitation(const std::string& channel);
 };
 
 typedef struct
@@ -125,7 +127,7 @@ class	Channel	{
 		~Channel();
 
 		void    setName(std::string name);
-		void	addClientToChannel(Client& Cli, size_t i, std::vector<std::string> keys);
+		void	addClientToChannel(Client& Cli, size_t i, std::vector<std::string> keys, bool op);
 
 		std::string 		getName( void );
 		std::vector<ChannelMember> get_users();
@@ -199,6 +201,7 @@ class Server	{
 		void    	handleJoinCommand(t_parc &parc, Client& cli);
 		void    	handleQuitCommand(Server &srv, t_parc &parc, Client& cli);
 		void		handleModeCommand(t_parc &parc, Client& cli);
+		void		handleInviteCommand(t_parc &parc, Client &client);
 
 	public: // the new part
 		void 	removeChannel(Channel channel);
