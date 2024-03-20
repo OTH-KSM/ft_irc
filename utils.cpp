@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 07:00:09 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/19 20:35:50 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/20 06:04:12 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,21 +48,13 @@ void    handleLimitFlag(Channel &channel, bool plusSign, std::string& memberLimi
         channel.setLimitedUsers(0);
 }
 
-// void handleOperatorFlag(Channel &channel, bool plusSign, Client& target)
-// {
-// 	if (plusSign)
-// 		channel.giveOperator(&target);
-// 	else
-// 		channel.removeOperator(&target);
-// }
-
-// void handleLimitFlag(Channel &channel, bool plusSign, std::string& memberLimit)
-// {
-// 	if (plusSign)
-// 		channel.setmemberLimit(std::atoi(memberLimit.c_str()));
-// 	else
-// 		channel.setmemberLimit(0);
-// }
+void handleOperatorFlag(Channel &channel, bool plusSign, Client& target)
+{
+	if (plusSign)
+		channel.giveOperator(target);
+	else
+		channel.removeOperator(target);
+}
 
 bool	isValidNum(const std::string &str)
 {

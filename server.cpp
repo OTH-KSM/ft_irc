@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/19 20:39:49 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/20 07:21:31 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,12 +86,12 @@ int Server::isClientExist(std::string nick, int fd) {
 	return (-1);
 }
 
-Client&	Server::getClientByNick(std::string nick) {
+Client*	Server::getClientByNick(std::string nick) {
 	for (std::map<int, Client>::iterator it = clientMap.begin(); it != clientMap.end(); ++it)   {
 		if (it->second.getNickName() == nick)
-			return (it->second);
+			return &(it->second);
 	}
-	throw std::runtime_error("401 * " + nick + " :No such Nickname");
+	return NULL;
 }
 
 Client&	Server::getClientByFd(int fd) {
@@ -212,27 +212,27 @@ std::vector<std::string> Server::split(const std::string &s, const std::string &
 * OTHER COMMANDS SECTION STARTS HERE
 */
 
-void	Server::handleWhoisCommand(t_parc &parc, Client& cli)	{
-		if (parc.params[0].empty())
-			throw std::runtime_error("461 * " + parc.cmd + " :Not enough parameters");
-		Client targetClient = getClientByNick(parc.params[0]);
+// void	Server::handleWhoisCommand(t_parc &parc, Client& cli)	{
+// 		if (parc.params[0].empty())
+// 			throw std::runtime_error("461 * " + parc.cmd + " :Not enough parameters");
+// 		Client *targetClient = getClientByNick(parc.params[0]);
 
-		std::string nick = targetClient.getNickName(); 
-		std::string user = targetClient.getUserName(); 
-		// std::string host = targetClient.getHostname();
-		std::string realName = targetClient.getRealName(); 
-		std::string serverName = this->Servername; 
-		std::string serverInfo = "The best IRC server Ever";
+// 		std::string nick = targetClient.getNickName(); 
+// 		std::string user = targetClient.getUserName(); 
+// 		// std::string host = targetClient.getHostname();
+// 		std::string realName = targetClient.getRealName(); 
+// 		std::string serverName = this->Servername; 
+// 		std::string serverInfo = "The best IRC server Ever";
 
-		std::string message = ":" + this->Servername + " 311 " + cli.getNickName() + " " + nick + " " + user + " " + "10.11.1.11" + " * :" + realName + "\r\n";
-		send(cli.getFd(), message.c_str(), message.size(), 0);
+// 		std::string message = ":" + this->Servername + " 311 " + cli.getNickName() + " " + nick + " " + user + " " + "10.11.1.11" + " * :" + realName + "\r\n";
+// 		send(cli.getFd(), message.c_str(), message.size(), 0);
 
-		message = ":" + this->Servername + " 312 " + cli.getNickName() + " " + nick + " " + serverName + " :" + serverInfo + "\r\n";
-		send(cli.getFd(), message.c_str(), message.size(), 0);
+// 		message = ":" + this->Servername + " 312 " + cli.getNickName() + " " + nick + " " + serverName + " :" + serverInfo + "\r\n";
+// 		send(cli.getFd(), message.c_str(), message.size(), 0);
 
-		message = ":" + this->Servername + " 318 " + cli.getNickName() + " " + nick + " :End of WHOIS list\r\n";
-		send(cli.getFd(), message.c_str(), message.size(), 0);
-}
+// 		message = ":" + this->Servername + " 318 " + cli.getNickName() + " " + nick + " :End of WHOIS list\r\n";
+// 		send(cli.getFd(), message.c_str(), message.size(), 0);
+// }
 
 void	Server::handlePrivmsgCommand(t_parc &parc, Client& cli)	{
     int state = cli.getRegistrationState();
@@ -291,26 +291,22 @@ void	Server::handleModeCommand(t_parc &parc, Client& cli)	{
 	if (parc.params.size() < 1)
 		throw std::runtime_error("461 * " + parc.cmd + " :Not enough parameters");
 	if (!Channel::isValidChannelName(parc.params[0]))	{
-		// std::cout << std::endl << "ha wahed" << std::endl << std::endl;
 		throw std::runtime_error("403 * " + parc.params[0] + " :No such channel");
 	}
 	Channel *channel = getChannelByName(parc.params[0]);
-	std::cout << "this channel named: " << channel->getName() << std::endl;
 	channel->listUsers();
-	std::cout << "clinet nickname: " << cli.getNickName() << std::endl;
 	if (!channel)	{
-		// std::cout << std::endl << "ha jooooj" << std::endl << std::endl;
 		throw std::runtime_error("403 * " + parc.params[0] + " :No such channel");
 	}
 	if (!(*channel).CheckClientExistInChannel(cli))
 		throw std::runtime_error("442 " + cli.getNickName() + " " + parc.params[0] + " :You're not on that channel");
 	if (parc.params.size() == 1)
 		throw std::runtime_error("324 " + cli.getNickName() + " " + parc.params[0] + " " + (*channel).getChannelModes());
-	// if (!channel->isOperator(&client))
-	// {
-	// 	Server::sendReply(ERR_CHANOPRIVSNEEDED(client.getNickname(), cmd.arguments[0]), client.getFd());
-	// 	return ;
-	// }
+	if (!channel->isOperator(cli))
+	{
+		throw std::runtime_error("482 " + cli.getNickName() + " " + parc.params[0] + " :You're not channel operator");
+		return ;
+	}
 	bool								plusSign = true;
 	std::string							firstArg = parc.params[1];
 	std::deque<std::string>::iterator	flagArgIt = parc.params.begin() + 2;
@@ -345,6 +341,24 @@ void	Server::handleModeCommand(t_parc &parc, Client& cli)	{
 						continue;
 					}
 					handleKeyFlag(*channel, plusSign, *flagArgIt);
+					flagArgIt++;
+				}
+				else if (firstArg[i] == 'o')
+				{
+					if (flagArgIt == parc.params.end())
+					{
+						std::string	message = "461 " + cli.getNickName() + " " + parc.cmd + " :Not enough parameters" + "\r\n";
+						send(cli.getFd(), message.c_str(), message.size(), 0);
+						continue;
+					}
+					Client *target = getClientByNick(*flagArgIt);
+					if (!target)
+					{
+						std::string	message = "461 " + cli.getNickName() + " " + parc.cmd + " :No such Nick/channel" + "\r\n";
+						send(cli.getFd(), message.c_str(), message.size(), 0);
+						continue ;
+					}
+					handleOperatorFlag(*channel, plusSign, *target);
 					flagArgIt++;
 				}
 				else if (firstArg[i] == 'l')
@@ -430,10 +444,12 @@ void    Server::sendToChannel(Client &cli, std::string dest, std::string message
     {
         if((*it).getName() == dest)
         {
-            std::vector<Client> users = (*it).get_users();
-            for(std::vector<Client>::iterator ite = users.begin(); ite != users.end(); ite++)
+            std::vector<ChannelMember> users = (*it).get_users();
+            for(std::vector<ChannelMember>::iterator ite = users.begin(); ite != users.end(); ite++)
             {
-                int destFd = (*ite).getFd();
+				if ((*ite).client.getNickName() == cli.getNickName())
+					continue;
+                int destFd = (*ite).client.getFd();
                 if (destFd == -1)
                     throw std::runtime_error(dest + " :No such nick/channel\n");
 					std::cout << (*it).getName() << std::endl;
@@ -454,11 +470,12 @@ void    Server::join_server_response(Client &cli, Channel &channel)
         newmsg = ":" + Servername + " 332 " + cli.getNickName() + " " + channel.getName() + " :" + channel.getTopic() + "\r\n";
         send(client_fd, newmsg.c_str(), newmsg.size(), 0);
     }
-    std::vector<Client> channel_users = channel.get_users(); 
+    std::vector<ChannelMember> channel_users = channel.get_users(); 
     std::string users_list;
-    for(std::vector<Client>::iterator ite = channel_users.begin(); ite != channel_users.end(); ite++)
+    for(std::vector<ChannelMember>::iterator ite = channel_users.begin(); ite != channel_users.end(); ite++)
     {
-        users_list += (*ite).getNickName();
+		// YOU HAVE A TROUBLE IN THIS FUNCITON BUS ERROR (when joining three clients)
+        users_list += (*ite).client.getNickName();
         if((ite++) != channel_users.end())
             users_list += " ";
     }
@@ -471,7 +488,7 @@ void    Server::join_server_response(Client &cli, Channel &channel)
 
 int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<std::string> split_keys, Client &cli) {
 	std::string message;
-    std::cout << "handlechannel is working" << std::endl;
+    // std::cout << "handlechannel is working" << std::endl;
     for(size_t i = 0; i < split_channels.size(); i++)
     {
         if(check_valid_channel_name(split_channels[i]))
@@ -483,9 +500,9 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
 				{
                 	if((*channel_ite).CheckClientExistInChannel(cli) == 0)
                 	{
-                    	std::cout << "new client was added to " << (*channel_ite).getName() << std::endl;
+                    	// std::cout << "new client was added to " << (*channel_ite).getName() << std::endl;
                     	(*channel_ite).addClientToChannel(cli, i, split_keys);
-                    	std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
+                    	// std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
                     	join_server_response(cli, (*channel_ite));
 						return 1; //channel exist
                 	}
@@ -501,9 +518,9 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
 					{
 						if((*channel_ite).CheckClientExistInChannel(cli) == 0)
                 		{
-                    		std::cout << "new client was added to " << (*channel_ite).getName() << std::endl;
+                    		// std::cout << "new client was added to " << (*channel_ite).getName() << std::endl;
                     		(*channel_ite).addClientToChannel(cli, i, split_keys);
-                    		std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
+                    		// std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
                     		join_server_response(cli, (*channel_ite));
 							return 1; //channel exist
                 		}
@@ -683,8 +700,8 @@ void    Server::parc(std::string message, Client& cli) {
 	}
     else if (parc.cmd == "JOIN")
         handleJoinCommand(parc, cli);
-	else if (parc.cmd == "WHOIS")
-		handleWhoisCommand(parc, cli);
+	// else if (parc.cmd == "WHOIS")
+	// 	handleWhoisCommand(parc, cli);
 	else if (parc.cmd == "PRIVMSG")
 		handlePrivmsgCommand(parc, cli);
     else if (parc.cmd == "QUIT")
@@ -693,6 +710,8 @@ void    Server::parc(std::string message, Client& cli) {
 		handleModeCommand(parc, cli);
 	else if (parc.cmd == "PRINT")
 		printChannelsAndClients();
+	// else if (parc.cmd == "INVITE")
+	// 	handleInviteCommand(parc, cli);
 }
 
 void Server::printChannelsAndClients() {

@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 12:33:51 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/19 20:34:07 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/20 07:18:15 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,11 +74,17 @@ class Client
     	int 		getChannelsJoined() const;
 };
 
+typedef struct
+{
+	Client	client;
+	bool	isOperator;
+}	ChannelMember;
 
+		
 class	Channel	{
 	private:
-		std::string			name;
-		std::vector<Client>	users;
+		std::string					name;
+		std::vector<ChannelMember>	users;
 		bool				needKey;
 		std::string			key;
 		/*new part*/
@@ -96,14 +102,19 @@ class	Channel	{
 		std::string		getKey();
 		bool			getNeedKey();
 		std::string 	getChannelModes(void);
+		bool		isOperator(Client &client);
 
 
 		void			setInviteOnly(bool isInviteOnly);
 		void			setTopicRestricted(bool isTopicRestricted);
 		void			setTopic(std::string topic);
-		void			setLimitedUsers(int limitedUsers);
 		void			setKey(std::string key);
 		void			setNeedKey(bool needKey);
+
+		void 			giveOperator(Client &client);
+		void 			removeOperator(Client &client);
+		void 			setLimitedUsers(int limitedUsers);
+		
 
 		void 		listUsers() const;
 
@@ -117,7 +128,7 @@ class	Channel	{
 		void	addClientToChannel(Client& Cli, size_t i, std::vector<std::string> keys);
 
 		std::string 		getName( void );
-		std::vector<Client> get_users();
+		std::vector<ChannelMember> get_users();
 		int 				getClientsNumber();
 		
 		int		CheckClientExistInChannel(Client &cli);
@@ -155,7 +166,7 @@ class Server	{
 	public:
 		int			getFd( void );
 		std::string getServerName( void );
-		Client&		getClientByNick(std::string nick);
+		Client*		getClientByNick(std::string nick);
 		Client&		getClientByFd(int fd);
 		std::vector<Channel> getChannels();
 		Channel*	getChannelByName(std::string name);
@@ -201,6 +212,8 @@ void	handleTopicFlag(Channel &channel, bool plusSign);
 void	handleKeyFlag(Channel &channel, bool plusSign, std::string& key);
 bool	isValidNum(const std::string &str);
 void	handleLimitFlag(Channel &channel, bool plusSign, std::string& memberLimit);
+void 	handleOperatorFlag(Channel &channel, bool plusSign, Client& target);
+
 
 
 

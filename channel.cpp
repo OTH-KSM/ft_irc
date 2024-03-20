@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 00:48:12 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/19 20:34:49 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/20 07:18:30 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,10 +22,10 @@ Channel::~Channel() {
 }
 
 void Channel::listUsers() const {
-    std::cout  << "LIsting Users" << std::endl << "====================" << std::endl;
-    for (const auto& user : users) {
-        std::cout << user.getNickName() << std::endl;
-    }
+	std::cout  << "Listing Users" << std::endl << "====================" << std::endl;
+	for (const auto& user : users) {
+		std::cout << user.client.getNickName() << "   --  " << (user.isOperator ? "Operator" : "Not Operator") << std::endl;
+	}
 }
 /*                                        _   
 * _ __   _____      __  _ __   __ _ _ __| |_ 
@@ -99,18 +99,55 @@ void    Channel::setKey(std::string key) {
     this->key = key;
 }
 
-void Channel::addClientToChannel(Client& Cli, size_t i, std::vector<std::string> keys) {
+bool	Channel::isOperator(Client &client)
+{
+	for (size_t i = 0; i < this->users.size(); i++)
+	{
+		if (this->users[i].client.getNickName() == client.getNickName())
+			return this->users[i].isOperator;
+	}
+	return false;
+}
+
+void Channel::giveOperator(Client &cli)
+{
+	for (size_t i = 0; i < this->users.size(); i++)
+	{
+		if (this->users[i].client.getNickName() == cli.getNickName())
+		{
+			this->users[i].isOperator = true;
+			return ;
+		}
+	}
+}
+
+void Channel::removeOperator(Client &client)
+{
+	for (size_t i = 0; i < this->users.size(); i++)
+	{
+		if (this->users[i].client.getNickName() == client.getNickName())
+		{
+			this->users[i].isOperator = false;
+			return ;
+		}
+	}
+}
+
+void Channel::addClientToChannel(Client& cli, size_t i, std::vector<std::string> keys) {
     if(needKey == 0 || (needKey == 1 && keys.size() >= i + 1 && keys[i] == key)) //check password
     {
-        if(Cli.getChannelsJoined() == 10)
+        if(cli.getChannelsJoined() == 10)
             throw std::runtime_error(" :Client cant join more than 10 client");
-        this->users.push_back(Cli);
-        Cli.increment_channels_joined();// added this cause max channels is 10 for each client
+        ChannelMember member;
+        member.client = cli;
+        member.isOperator = false;
+        this->users.push_back(member);
+        cli.increment_channels_joined();// added this cause max channels is 10 for each client
     }
     return;
 }
 
-std::vector<Client> Channel::get_users()
+std::vector<ChannelMember> Channel::get_users()
 {
     return(users);
 }
@@ -128,9 +165,9 @@ std::string Channel::getName( void )    {
 
 int  Channel::CheckClientExistInChannel(Client &cli)
 {
-    for(std::vector<Client>::iterator ite = users.begin(); ite != users.end(); ite++)
+    for(std::vector<ChannelMember>::iterator ite = users.begin(); ite != users.end(); ite++)
     {
-        if((*ite).getNickName() == cli.getNickName())   {
+        if((*ite).client.getNickName() == cli.getNickName())   {
             return(1);
         }
     }
@@ -140,9 +177,9 @@ void Channel::broadcastMessage(Client *sender, std::string message)
 {
 	for (size_t i = 0; i < this->users.size(); i++)
 	{
-		if (sender && this->users[i].getNickName() == sender->getNickName())
+		if (sender && this->users[i].client.getNickName() == sender->getNickName())
 			continue ;
-		send(this->users[i].getFd(), message.c_str(), message.length(), 0);
+		send(this->users[i].client.getFd(), message.c_str(), message.length(), 0);
 	}
 }
 
@@ -150,7 +187,7 @@ void Channel::removeMember(Server &srv, Client client)
 {
 	for (size_t i = 0; i < this->users.size(); i++)
 	{
-		if (this->users[i].getNickName() == client.getNickName())
+		if (this->users[i].client.getNickName() == client.getNickName())
 		{
 			this->users.erase(this->users.begin() + i);
 			break ;
