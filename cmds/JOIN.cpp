@@ -44,7 +44,7 @@ void    Server::join_server_response(Client &cli, Channel &channel)
     {
 		// YOU HAVE A TROUBLE IN THIS FUNCITON BUS ERROR (when joining three clients)
         users_list += (*ite).client.getNickName();
-        if((ite++) != channel_users.end())
+        if((ite + 1) != channel_users.end())
             users_list += " ";
     }
     std::cout << "this is the users_list" << users_list << std::endl; // not tested

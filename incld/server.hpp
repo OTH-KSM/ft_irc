@@ -74,6 +74,7 @@ class Server	{
 		void    	handleQuitCommand(Server &srv, t_parc &parc, Client& cli);
 		void		handleModeCommand(t_parc &parc, Client& cli);
 		void		handleInviteCommand(t_parc &parc, Client &client);
+		int			handleTopicCommand(t_parc &parc, Client &client);
 
 	public:
 		void 	removeChannel(Channel channel);

@@ -314,6 +314,8 @@ void    Server::parc(std::string message, Client& cli) {
 		printChannelsAndClients();
 	else if (parc.cmd == "INVITE")
 		handleInviteCommand(parc, cli);
+	else if (parc.cmd == "TOPIC")
+		handleTopicCommand(parc, cli);
 }
 
 

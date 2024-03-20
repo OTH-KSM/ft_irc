@@ -57,6 +57,10 @@ bool   Channel::getTopicRestricted() {
     return topicRestricted;
 }
 
+bool	Channel::getHaveTopic()
+{
+	return(haveTopic);
+}
 std::string Channel::getTopic() {
     return topic;
 }
@@ -69,6 +73,15 @@ std::string Channel::getKey() {
     return key;
 }
 
+std::string Channel::getTopicSetter()
+{
+	return(topicSetter);
+}
+
+std::string Channel::getTimeTopicWasSet()
+{
+	return(timeTopicWasSet);
+}
 /* Setters */
 
 void    Channel::setInviteOnly(bool isInviteOnly) {
@@ -77,6 +90,11 @@ void    Channel::setInviteOnly(bool isInviteOnly) {
 
 void    Channel::setTopicRestricted(bool isTopicRestricted) {
     this->topicRestricted = isTopicRestricted;
+}
+
+void	Channel::setHaveTopic(bool topic_bool)
+{
+	haveTopic = topic_bool;
 }
 
 void    Channel::setTopic(std::string topic) {
@@ -99,6 +117,15 @@ void    Channel::setKey(std::string key) {
     this->key = key;
 }
 
+void	Channel::setTopicSetter(std::string nick){
+	topicSetter = nick;
+}
+
+void	Channel::setTimeTopicWasSet(std::string t)
+{
+	timeTopicWasSet = t;
+}
+
 bool	Channel::isOperator(Client &client)
 {
 	for (size_t i = 0; i < this->users.size(); i++)
@@ -107,6 +134,12 @@ bool	Channel::isOperator(Client &client)
 			return this->users[i].isOperator;
 	}
 	return false;
+}
+
+void	Channel::clearTopic()
+{
+	topic.clear();
+	haveTopic = 0;
 }
 
 void Channel::giveOperator(Client &cli)
@@ -173,6 +206,7 @@ int  Channel::CheckClientExistInChannel(Client &cli)
     }
     return(0);
 }
+
 void Channel::broadcastMessage(Client *sender, std::string message)
 {
 	for (size_t i = 0; i < this->users.size(); i++)
@@ -181,6 +215,12 @@ void Channel::broadcastMessage(Client *sender, std::string message)
 			continue ;
 		send(this->users[i].client.getFd(), message.c_str(), message.length(), 0);
 	}
+}
+
+void Channel::broadcastMessageServer(std::string message)
+{
+	for (size_t i = 0; i < this->users.size(); i++)
+		send(this->users[i].client.getFd(), message.c_str(), message.length(), 0);
 }
 
 void Channel::removeMember(Server &srv, Client client)
