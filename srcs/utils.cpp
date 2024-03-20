@@ -6,11 +6,11 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 07:00:09 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/20 06:04:12 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/20 09:11:24 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "header.hpp"
+#include "../incld/irc.hpp"
 
 void handleInviteFlag(Channel &channel, bool plusSign)
 {

@@ -6,11 +6,11 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 12:32:06 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/16 15:20:03 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/20 09:12:52 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "header.hpp"
+#include "../incld/irc.hpp"
 
 
 bool Server::Signal = false;

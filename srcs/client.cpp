@@ -6,11 +6,11 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/09 17:50:00 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/20 07:35:38 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/20 09:13:12 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "header.hpp"
+#include "../incld/irc.hpp"
 
 Client::Client() : registrationState(0) , channels_joined(0)  {
     
