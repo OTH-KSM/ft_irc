@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 00:48:12 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/19 08:16:34 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/19 20:34:49 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,14 @@ void    Channel::setTopicRestricted(bool isTopicRestricted) {
 
 void    Channel::setTopic(std::string topic) {
     this->topic = topic;
+}
+
+bool    Channel::getNeedKey() {
+    return needKey;
+}
+
+void    Channel::setNeedKey(bool needKey) {
+    this->needKey = needKey;
 }
 
 void    Channel::setLimitedUsers(int limitedUsers) {

@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/18 07:00:09 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/18 07:37:06 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/19 20:35:50 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,10 +30,14 @@ void handleTopicFlag(Channel &channel, bool plusSign)
 
 void handleKeyFlag(Channel &channel, bool plusSign, std::string& key)
 {
-	if (plusSign)
+	if (plusSign)	{
 		channel.setKey(key);
-	else
+		channel.setNeedKey(true);
+	}
+	else	{
 		channel.setKey("");
+		channel.setNeedKey(false);
+	}
 }
 
 void    handleLimitFlag(Channel &channel, bool plusSign, std::string& memberLimit)

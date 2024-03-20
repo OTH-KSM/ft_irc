@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/19 08:27:04 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/19 20:39:49 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -347,29 +347,10 @@ void	Server::handleModeCommand(t_parc &parc, Client& cli)	{
 					handleKeyFlag(*channel, plusSign, *flagArgIt);
 					flagArgIt++;
 				}
-				else if (firstArg[i] == 'o')
-				{
-					if (flagArgIt == parc.params.end())
-					{
-						std::string	message = "461 " + cli.getNickName() + " " + parc.cmd + " :Not enough parameters" + "\r\n";
-						send(cli.getFd(), message.c_str(), message.size(), 0);
-						continue;
-					}
-					// Client target = getClientByNick(*flagArgIt);
-					// if (!target)
-					// {
-					// 	std::string message =  "401 " + cli.getNickName() + " " + *flagArgIt + " :No such nick/channel" + "\r\n";
-					// 	send(cli.getFd(), message.c_str(), message.size(), 0);
-					// 	continue ;
-					// }
-					// handleOperatorFlag(channel, plusSign, *target);
-					flagArgIt++;
-				}
 				else if (firstArg[i] == 'l')
 				{
 					if (flagArgIt == parc.params.end())
 					{
-
 						std::string	message = "461 " + cli.getNickName() + " " + parc.cmd + " :Not enough parameters" + "\r\n";
 						send(cli.getFd(), message.c_str(), message.size(), 0);
 						continue;
@@ -463,32 +444,84 @@ void    Server::sendToChannel(Client &cli, std::string dest, std::string message
     }
 }
 
+void    Server::join_server_response(Client &cli, Channel &channel) 
+{
+    int client_fd = cli.getFd();
+    std::string newmsg = ":" + cli.getNickName() + " JOIN " + channel.getName() + "\r\n";
+    send(client_fd, newmsg.c_str(), newmsg.size(), 0);
+    if(!channel.getTopic().empty())
+    {
+        newmsg = ":" + Servername + " 332 " + cli.getNickName() + " " + channel.getName() + " :" + channel.getTopic() + "\r\n";
+        send(client_fd, newmsg.c_str(), newmsg.size(), 0);
+    }
+    std::vector<Client> channel_users = channel.get_users(); 
+    std::string users_list;
+    for(std::vector<Client>::iterator ite = channel_users.begin(); ite != channel_users.end(); ite++)
+    {
+        users_list += (*ite).getNickName();
+        if((ite++) != channel_users.end())
+            users_list += " ";
+    }
+    std::cout << "this is the users_list" << users_list << std::endl; // not tested
+    newmsg = ":" + Servername + " 353 " + cli.getNickName() + " = " + channel.getName() + " :" + users_list + "\r\n"; // handle the channel op
+    send(client_fd, newmsg.c_str(), newmsg.size(), 0);
+    newmsg = ":" + Servername + " 366 " + cli.getNickName() + " = " + channel.getName() + " :End of /NAMES list\r\n"; // handle the channel op
+    send(client_fd, newmsg.c_str(), newmsg.size(), 0);
+}
 
 int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<std::string> split_keys, Client &cli) {
-
-    // std::cout << "handlechannel is working" << std::endl;
+	std::string message;
+    std::cout << "handlechannel is working" << std::endl;
     for(size_t i = 0; i < split_channels.size(); i++)
     {
         if(check_valid_channel_name(split_channels[i]))
             continue;
-        for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); it++) {// gotta check keys  
-            if ((*it).getName() == split_channels[i])
+        for (std::vector<Channel>::iterator channel_ite = channels.begin(); channel_ite != channels.end(); channel_ite++) {// gotta check keys  
+            if ((*channel_ite).getName() == split_channels[i])
             {
-                if((*it).CheckClientExistInChannel(cli) == 0)
-                {
-                    // std::cout << "new client was added to " << (*it).getName() << std::endl;
-                    (*it ).addClientToChannel(cli, i, split_keys);
-                    // std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*it).getName() << " is " << (*it).getClientsNumber() << std::endl;
-                    return 1; //channel exist
-                }
-                else
-                {
-                    // std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*it).getName() << " is " << (*it).getClientsNumber() << std::endl;
-                    return 0; // client already exist in channel;
-                }
+				if((*channel_ite).getNeedKey() == 0)
+				{
+                	if((*channel_ite).CheckClientExistInChannel(cli) == 0)
+                	{
+                    	std::cout << "new client was added to " << (*channel_ite).getName() << std::endl;
+                    	(*channel_ite).addClientToChannel(cli, i, split_keys);
+                    	std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
+                    	join_server_response(cli, (*channel_ite));
+						return 1; //channel exist
+                	}
+                	else
+               		{
+                    	std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
+                    	return 0; // client already exist in channel;
+                	}
+				}
+				else
+				{
+					if(split_keys.size() >= i + 1 && split_keys[i] == (*channel_ite).getKey())
+					{
+						if((*channel_ite).CheckClientExistInChannel(cli) == 0)
+                		{
+                    		std::cout << "new client was added to " << (*channel_ite).getName() << std::endl;
+                    		(*channel_ite).addClientToChannel(cli, i, split_keys);
+                    		std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
+                    		join_server_response(cli, (*channel_ite));
+							return 1; //channel exist
+                		}
+                		else
+               			{
+                    		std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
+                    		return 0; // client already exist in channel;
+                		}
+					}
+					else
+					{
+						std::cout << "faulty password" << std::endl; //gotta handle the numeric responses
+						return(0);
+					}
+				}
             }
         }
-        // std::cout << "new channel was created " << std::endl;
+        std::cout << "new channel was created " << std::endl;
         if(split_keys.size() >= i + 1)
         {
             Channel new_channel(split_channels[i], split_keys[i]);
@@ -501,7 +534,7 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
             new_channel.addClientToChannel(cli, i, split_keys); // this client should become a client operator u gotta handle it.
             channels.push_back(new_channel);
         }
-        // std::cout << "channels " << channels.size() << " " << "channel_clients in " << channels[i].getName() << " is " << channels[i].getClientsNumber() << std::endl;
+        std::cout << "channels " << channels.size() << " " << "channel_clients in " << channels[i].getName() << " is " << channels[i].getClientsNumber() << std::endl;
     }
     return 0;
 }
@@ -522,7 +555,7 @@ void    Server::init()  {
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 	struct addrinfo *bind_address;
-	getaddrinfo("10.11.1.11", "8080", &hints, &bind_address);
+	getaddrinfo(0, "8080", &hints, &bind_address);
 
 	if((this->SersocketFD = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol)) == -1)
 		throw std::runtime_error("Error in Socket");

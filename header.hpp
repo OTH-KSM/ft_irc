@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 12:33:51 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/19 05:22:10 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/19 20:34:07 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,6 +94,7 @@ class	Channel	{
 		std::string		getTopic();
 		int				getLimitedUsers();
 		std::string		getKey();
+		bool			getNeedKey();
 		std::string 	getChannelModes(void);
 
 
@@ -102,6 +103,7 @@ class	Channel	{
 		void			setTopic(std::string topic);
 		void			setLimitedUsers(int limitedUsers);
 		void			setKey(std::string key);
+		void			setNeedKey(bool needKey);
 
 		void 		listUsers() const;
 
@@ -190,6 +192,7 @@ class Server	{
 	public: // the new part
 		void 	removeChannel(Channel channel);
 		void	printChannelsAndClients();
+		void    join_server_response(Client &cli, Channel &channel) ;
 		
 };
 
