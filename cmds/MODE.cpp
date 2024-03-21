@@ -6,11 +6,17 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:11:38 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/20 08:42:12 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/21 20:55:28 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../incld/irc.hpp"
+
+// i - invite-only channel flag; 					 	  || MODE #channel +i
+// t - topic settable by channel operator only flag;	  || MODE #channel +t
+// k - set a channel key (password).				 	  || MODE #channel +k "new-key"
+// o - give/take channel operator privileges;			  || MODE #channel +o nick
+// l - set the user memberLimit to channel;			  	  || MODE #channel +l 50
 
 void	Server::handleModeCommand(t_parc &parc, Client& cli)	{
 	if (parc.params.size() < 1)

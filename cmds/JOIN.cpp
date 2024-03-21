@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:05:39 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/20 08:42:01 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/21 23:42:09 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,12 +101,12 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
                         	    join_server_response(cli, (*channel_ite));
 				    		    return 1;
                             }
-                            else
-                            {
-                                message = ":" + Servername + " 475 " + cli.getNickName() + " " + (*channel_ite).getName() + " :Cannot join channel (+k)\r\n";
-                                send(client_fd, message.c_str(), message.size(), 0);
-                                return(0);
-                            }
+                        }
+                        else
+                        {
+                            message = ":" + Servername + " 475 " + cli.getNickName() + " " + (*channel_ite).getName() + " :Cannot join channel (+k)\r\n";
+                            send(client_fd, message.c_str(), message.size(), 0);
+                            return(0);
                         }
                     }
                 }
