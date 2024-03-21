@@ -57,5 +57,5 @@ int		Server::handleKickCommand(t_parc &parc, Client &cli)
 	        channel_ptr->broadcastMessageServer(newmsg);
         }
     }
-
+    return(1);
 }
