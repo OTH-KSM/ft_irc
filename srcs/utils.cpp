@@ -45,7 +45,7 @@ void    handleLimitFlag(Channel &channel, bool plusSign, std::string& memberLimi
     if (plusSign)
         channel.setLimitedUsers(std::atoi(memberLimit.c_str()));
     else
-        channel.setLimitedUsers(0);
+        channel.setLimitedUsers(0); // hadi -1 wla 0 ??? 
 }
 
 void handleOperatorFlag(Channel &channel, bool plusSign, Client& target)

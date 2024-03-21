@@ -46,6 +46,7 @@ class Client
     	void		increment_channels_joined();
     	int 		getChannelsJoined() const;
 		void		addChannelInvitation(const std::string& channel);
+		int			checkClientGotInvitation(const std::string &channel);
 };
 
 #endif

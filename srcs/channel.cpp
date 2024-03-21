@@ -82,6 +82,16 @@ std::string Channel::getTimeTopicWasSet()
 {
 	return(timeTopicWasSet);
 }
+
+int 		Channel::getNumberOfUsers()
+{
+	int i = 0;
+	for(std::vector<ChannelMember>::iterator ite = users.begin(); ite != users.end(); ite++)
+	{
+		i++;
+	}
+	return (i);
+}
 /* Setters */
 
 void    Channel::setInviteOnly(bool isInviteOnly) {
@@ -142,6 +152,17 @@ void	Channel::clearTopic()
 	haveTopic = 0;
 }
 
+void			Channel::kickUser(std::string User_nick)
+{
+	for (std::vector<ChannelMember>::iterator ite = users.begin(); ite != users.end(); ite++)
+	{
+		if ((*ite).client.getNickName() == User_nick)
+		{
+			users.erase(ite); // gotta check it more
+			return ;
+		}	
+	}
+}
 void Channel::giveOperator(Client &cli)
 {
 	for (size_t i = 0; i < this->users.size(); i++)
@@ -201,6 +222,17 @@ int  Channel::CheckClientExistInChannel(Client &cli)
     for(std::vector<ChannelMember>::iterator ite = users.begin(); ite != users.end(); ite++)
     {
         if((*ite).client.getNickName() == cli.getNickName())   {
+            return(1);
+        }
+    }
+    return(0);
+}
+
+int  Channel::CheckClientExistInChannel(std::string client_nick)
+{
+    for(std::vector<ChannelMember>::iterator ite = users.begin(); ite != users.end(); ite++)
+    {
+        if((*ite).client.getNickName() == client_nick)   {
             return(1);
         }
     }

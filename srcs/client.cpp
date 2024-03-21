@@ -70,3 +70,13 @@ void	Client::addChannelInvitation(const std::string& channel)
 {
 	this->channelInvitations.push_back(channel);
 }
+
+int     Client::checkClientGotInvitation(const std::string &channel)
+{
+    for(std::vector<std::string>::iterator ite = channelInvitations.begin(); ite != channelInvitations.end(); ite++)
+    {
+        if((*ite) == channel)
+            return(1);
+    }
+    return(0);
+}

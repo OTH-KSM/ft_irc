@@ -37,7 +37,7 @@ class	Channel	{
 		std::string			timeTopicWasSet;
 		bool				isInviteOnly;
 		bool				topicRestricted;
-		int					limitedUsers; // -1 if no limitUsers
+		int					limitedUsers;
 	
 	public:
 		static bool			isValidChannelName(const std::string name);
@@ -51,6 +51,7 @@ class	Channel	{
 		std::string 	getChannelModes(void);
 		std::string		getTopicSetter();
 		std::string		getTimeTopicWasSet();
+		int				getNumberOfUsers();
 
 		bool		isOperator(Client &client);
 
@@ -66,7 +67,7 @@ class	Channel	{
 		void			setTimeTopicWasSet(std::string t);
 
 		void			clearTopic();
-		int				checkValidTopic(std::string topic);
+		void			kickUser(std::string User_nick);
 
 		void 			giveOperator(Client &client);
 		void 			removeOperator(Client &client);
@@ -89,6 +90,7 @@ class	Channel	{
 		int 				getClientsNumber();
 		
 		int		CheckClientExistInChannel(Client &cli);
+		int  	CheckClientExistInChannel(std::string client_nick);
 
 		/* the new part */
 		void	broadcastMessage(Client *sender, std::string message);
