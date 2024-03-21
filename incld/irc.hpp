@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:18:19 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/20 08:39:37 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/20 17:01:14 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include "client.hpp"
 #include "server.hpp"
 #include "channel.hpp"
+#include "bot.hpp"
 
 
 

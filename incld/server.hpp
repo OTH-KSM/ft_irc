@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:21:01 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/20 08:22:24 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/21 20:38:53 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,6 +74,8 @@ class Server	{
 		void    	handleQuitCommand(Server &srv, t_parc &parc, Client& cli);
 		void		handleModeCommand(t_parc &parc, Client& cli);
 		void		handleInviteCommand(t_parc &parc, Client &client);
+
+		void		Bot(t_parc &parc, Client &cli);
 
 	public:
 		void 	removeChannel(Channel channel);

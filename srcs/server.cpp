@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/20 09:13:03 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/21 20:39:15 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -253,12 +253,35 @@ void    Server::init()  {
 
 /************************ GENERAL ************************/
 
-void    Server::parc(std::string message, Client& cli) {
+bool containsCtrlD(const std::string& message) {
+    return message.find("^D") != std::string::npos;
+}
+
+std::string parseClientMessage(const std::string& message) {
+    if (!containsCtrlD(message)) {
+        return message;
+    }
+
+    std::string parsedMessage = message;
+    std::string::size_type n = 0;
+    std::string ctrlD = "^D";
+
+    while ( ( n = parsedMessage.find( ctrlD, n ) ) != std::string::npos )
+    {
+        parsedMessage.erase(n, ctrlD.length());
+    }
+
+    return parsedMessage;
+}
+
+void    Server::parc(std::string message, Client& cli, fd_set& reads) {
 	t_parc      parc;
 	std::string temp;
 	std::stringstream cc;
 
-	message.erase(message.size() - 1);
+	if (containsCtrlD(message)) {
+		message = parseClientMessage(message);
+	}
 	size_t prefixEnd = message.find(":", 2);
 	if (prefixEnd != std::string::npos) {
 		std::string prefix = message.substr(prefixEnd + 1, message.length() - 2);
@@ -314,6 +337,8 @@ void    Server::parc(std::string message, Client& cli) {
 		printChannelsAndClients();
 	else if (parc.cmd == "INVITE")
 		handleInviteCommand(parc, cli);
+	else if (parc.cmd == "BOTOX")
+		Bot(parc, cli);
 }
 
 
