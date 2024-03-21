@@ -44,7 +44,7 @@ void    Server::join_server_response(Client &cli, Channel &channel)
     {
 		// YOU HAVE A TROUBLE IN THIS FUNCITON BUS ERROR (when joining three clients)
         users_list += (*ite).client.getNickName();
-        if((ite++) != channel_users.end())
+        if((ite + 1) != channel_users.end())
             users_list += " ";
     }
     std::cout << "this is the users_list" << users_list << std::endl; // not tested
@@ -56,6 +56,8 @@ void    Server::join_server_response(Client &cli, Channel &channel)
 
 int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<std::string> split_keys, Client &cli) {
 	std::string message;
+    int client_fd = cli.getFd();
+
     for(size_t i = 0; i < split_channels.size(); i++)
     {
         if(check_valid_channel_name(split_channels[i]))
@@ -63,46 +65,57 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
         for (std::vector<Channel>::iterator channel_ite = channels.begin(); channel_ite != channels.end(); channel_ite++) {// gotta check keys  
             if ((*channel_ite).getName() == split_channels[i])
             {
-				if((*channel_ite).getNeedKey() == 0)
-				{
-                	if((*channel_ite).CheckClientExistInChannel(cli) == 0)
-                	{
-                    	// std::cout << "new client was added to " << (*channel_ite).getName() << std::endl;
-                    	(*channel_ite).addClientToChannel(cli, i, split_keys, false);
-                    	// std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
-                    	join_server_response(cli, (*channel_ite));
-						return 1; //channel exist
-                	}
-                	else
-               		{
-                    	std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
-                    	return 0; // client already exist in channel;
-                	}
-				}
-				else
-				{
-					if(split_keys.size() >= i + 1 && split_keys[i] == (*channel_ite).getKey())
-					{
-						if((*channel_ite).CheckClientExistInChannel(cli) == 0)
-                		{
-                    		// std::cout << "new client was added to " << (*channel_ite).getName() << std::endl;
-                    		(*channel_ite).addClientToChannel(cli, i, split_keys, false);
-                    		// std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
-                    		join_server_response(cli, (*channel_ite));
-							return 1; //channel exist
-                		}
-                		else
-               			{
-                    		std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
-                    		return 0; // client already exist in channel;
-                		}
-					}
-					else
-					{
-						std::cout << "faulty password" << std::endl; //gotta handle the numeric responses
-						return(0);
-					}
-				}
+                if((*channel_ite).getLimitedUsers() != -1 && ((*channel_ite).getNumberOfUsers() == (*channel_ite).getLimitedUsers()))
+                {
+                    message = ":" + Servername + " 473 " + cli.getNickName() + " " + (*channel_ite).getName() + " :Cannot join channel (+l)\r\n";
+                    send(client_fd, message.c_str(), message.size(), 0);
+                    return(0);
+                }
+                if(((*channel_ite).getInviteOnly() == 1 && cli.checkClientGotInvitation((*channel_ite).getName())) || (*channel_ite).getInviteOnly() == 0)
+                {
+				    if((*channel_ite).getNeedKey() == 0)
+				    {
+                    	if((*channel_ite).CheckClientExistInChannel(cli) == 0)
+                    	{
+                        	// std::cout << "new client was added to " << (*channel_ite).getName() << std::endl;
+                        	(*channel_ite).addClientToChannel(cli, i, split_keys, false);
+                        	// std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
+                        	join_server_response(cli, (*channel_ite));
+				    		return 1; //channel exist
+                    	}
+                    	else
+               	    	{
+                        	std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
+                        	return 0; // client already exist in channel;
+                    	}
+				    }
+                    else
+                    {
+                        if((*channel_ite).CheckClientExistInChannel(cli) == 1)
+                            return 0;
+                        else if((split_keys.size() >= i + 1))
+                        {
+                            if(split_keys[i] == (*channel_ite).getKey())
+                            {
+                                (*channel_ite).addClientToChannel(cli, i, split_keys, false);
+                        	    join_server_response(cli, (*channel_ite));
+				    		    return 1;
+                            }
+                            else
+                            {
+                                message = ":" + Servername + " 475 " + cli.getNickName() + " " + (*channel_ite).getName() + " :Cannot join channel (+k)\r\n";
+                                send(client_fd, message.c_str(), message.size(), 0);
+                                return(0);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    message = ":" + Servername + " 473 " + cli.getNickName() + " " + (*channel_ite).getName() + " :Cannot join channel (+i)\r\n";
+                    send(client_fd, message.c_str(), message.size(), 0);
+                    return(0);
+                }
             }
         }
         std::cout << "new channel was created " << std::endl;

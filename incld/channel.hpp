@@ -31,28 +31,43 @@ class	Channel	{
 		std::vector<ChannelMember>	users;
 		bool				needKey;
 		std::string			key;
+		bool				haveTopic;
+		std::string			topic;
+		std::string			topicSetter;
+		std::string			timeTopicWasSet;
 		bool				isInviteOnly;
 		bool				topicRestricted;
-		std::string			topic;
-		int					limitedUsers; // -1 if no limitUsers
+		int					limitedUsers;
 	
 	public:
 		static bool			isValidChannelName(const std::string name);
 		bool			getInviteOnly();
 		bool			getTopicRestricted();
+		bool			getHaveTopic();
 		std::string		getTopic();
 		int				getLimitedUsers();
 		std::string		getKey();
 		bool			getNeedKey();
 		std::string 	getChannelModes(void);
+		std::string		getTopicSetter();
+		std::string		getTimeTopicWasSet();
+		int				getNumberOfUsers();
+
 		bool		isOperator(Client &client);
+
 
 
 		void			setInviteOnly(bool isInviteOnly);
 		void			setTopicRestricted(bool isTopicRestricted);
+		void			setHaveTopic(bool topic_bool);
 		void			setTopic(std::string topic);
 		void			setKey(std::string key);
 		void			setNeedKey(bool needKey);
+		void			setTopicSetter(std::string nick);
+		void			setTimeTopicWasSet(std::string t);
+
+		void			clearTopic();
+		void			kickUser(std::string User_nick);
 
 		void 			giveOperator(Client &client);
 		void 			removeOperator(Client &client);
@@ -75,9 +90,11 @@ class	Channel	{
 		int 				getClientsNumber();
 		
 		int		CheckClientExistInChannel(Client &cli);
+		int  	CheckClientExistInChannel(std::string client_nick);
 
 		/* the new part */
 		void	broadcastMessage(Client *sender, std::string message);
+		void	broadcastMessageServer(std::string message);
 		void	removeMember(Server &srv, Client client);
 		
 };

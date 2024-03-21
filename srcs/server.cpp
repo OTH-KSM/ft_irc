@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/21 20:39:15 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/21 20:46:05 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -274,7 +274,7 @@ std::string parseClientMessage(const std::string& message) {
     return parsedMessage;
 }
 
-void    Server::parc(std::string message, Client& cli, fd_set& reads) {
+void    Server::parc(std::string message, Client& cli) {
 	t_parc      parc;
 	std::string temp;
 	std::stringstream cc;
@@ -339,6 +339,8 @@ void    Server::parc(std::string message, Client& cli, fd_set& reads) {
 		handleInviteCommand(parc, cli);
 	else if (parc.cmd == "BOTOX")
 		Bot(parc, cli);
+	else if (parc.cmd == "TOPIC")
+		handleTopicCommand(parc, cli);
 }
 
 
