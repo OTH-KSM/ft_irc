@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:05:39 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/21 23:42:09 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/22 01:10:59 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,6 +101,8 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
                         	    join_server_response(cli, (*channel_ite));
 				    		    return 1;
                             }
+                            else
+                                throw std::runtime_error("475 " + cli.getNickName() + " " + (*channel_ite).getName() + " :Cannot join channel (+k) - bad key");
                         }
                         else
                         {
@@ -124,12 +126,14 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
             Channel new_channel(split_channels[i], split_keys[i]);
             new_channel.addClientToChannel(cli, i, split_keys, true); // this client should become a client operator u gotta handle it.
             channels.push_back(new_channel);
+            join_server_response(cli, new_channel);
         }
         else
         {
             Channel new_channel(split_channels[i]);
             new_channel.addClientToChannel(cli, i, split_keys, true); // this client should become a client operator u gotta handle it.
             channels.push_back(new_channel);
+            join_server_response(cli, new_channel);
         }
         std::cout << "channels " << channels.size() << " " << "channel_clients in " << channels[i].getName() << " is " << channels[i].getClientsNumber() << std::endl;
     }

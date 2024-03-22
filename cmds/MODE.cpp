@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:11:38 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/21 20:55:28 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/22 00:30:40 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,6 @@ void	Server::handleModeCommand(t_parc &parc, Client& cli)	{
 		throw std::runtime_error("403 * " + parc.params[0] + " :No such channel");
 	}
 	Channel *channel = getChannelByName(parc.params[0]);
-	channel->listUsers();
 	if (!channel)	{
 		throw std::runtime_error("403 * " + parc.params[0] + " :No such channel");
 	}

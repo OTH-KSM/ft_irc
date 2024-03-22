@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 00:48:12 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/20 09:13:08 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/21 22:31:33 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,15 +154,18 @@ void	Channel::clearTopic()
 
 void			Channel::kickUser(std::string User_nick)
 {
+	int i = 0;
 	for (std::vector<ChannelMember>::iterator ite = users.begin(); ite != users.end(); ite++)
 	{
 		if ((*ite).client.getNickName() == User_nick)
 		{
-			users.erase(ite); // gotta check it more
+			users.erase(users.begin() + i); // gotta check it more
 			return ;
-		}	
+		}
+		i++;
 	}
 }
+
 void Channel::giveOperator(Client &cli)
 {
 	for (size_t i = 0; i < this->users.size(); i++)

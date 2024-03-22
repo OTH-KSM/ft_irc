@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/21 20:46:05 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/21 23:58:12 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -341,6 +341,8 @@ void    Server::parc(std::string message, Client& cli) {
 		Bot(parc, cli);
 	else if (parc.cmd == "TOPIC")
 		handleTopicCommand(parc, cli);
+	else if (parc.cmd == "KICK")
+		handleKickCommand(parc, cli);
 }
 
 

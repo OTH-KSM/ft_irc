@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   server.cpp                                         :+:      :+:    :+:   */
+/*   KICK.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/20 09:13:03 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/22 00:42:00 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ int		Server::handleKickCommand(t_parc &parc, Client &cli)
         channel_ptr = getChannelByName(parc.params[0]);
         if(!channel_ptr)
         {
-            newmsg = ":" + Servername + " 403 " + cli.getNickName() + " " + channel_ptr->getName() + " :No such channel\r\n";
+            newmsg = ":" + Servername + " 403 " + cli.getNickName() + " " + parc.params[0] + " :No such channel\r\n";
             send(client_fd, newmsg.c_str(), newmsg.size(), 0);
             return(0); //failure
         }
