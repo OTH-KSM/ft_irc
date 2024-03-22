@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:05:39 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/22 01:10:59 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/22 02:30:03 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,15 +42,17 @@ void    Server::join_server_response(Client &cli, Channel &channel)
     std::string users_list;
     for(std::vector<ChannelMember>::iterator ite = channel_users.begin(); ite != channel_users.end(); ite++)
     {
-		// YOU HAVE A TROUBLE IN THIS FUNCITON BUS ERROR (when joining three clients)
-        users_list += (*ite).client.getNickName();
+		if ((*ite).isOperator)
+            users_list += "@" + (*ite).client.getNickName();
+        else
+            users_list += (*ite).client.getNickName();
         if((ite + 1) != channel_users.end())
             users_list += " ";
     }
     std::cout << "this is the users_list" << users_list << std::endl; // not tested
-    newmsg = ":" + Servername + " 353 " + cli.getNickName() + " = " + channel.getName() + " :" + users_list + "\r\n"; // handle the channel op
+    newmsg = ":" + Servername + " 353 " + cli.getNickName() + " @ " + channel.getName() + " :" + users_list + "\r\n"; // handle the channel op
     send(client_fd, newmsg.c_str(), newmsg.size(), 0);
-    newmsg = ":" + Servername + " 366 " + cli.getNickName() + " = " + channel.getName() + " :End of /NAMES list\r\n"; // handle the channel op
+    newmsg = ":" + Servername + " 366 " + cli.getNickName() + " " + channel.getName() + " :End of /NAMES list.\r\n"; // handle the channel op
     send(client_fd, newmsg.c_str(), newmsg.size(), 0);
 }
 
@@ -80,7 +82,9 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
                         	// std::cout << "new client was added to " << (*channel_ite).getName() << std::endl;
                         	(*channel_ite).addClientToChannel(cli, i, split_keys, false);
                         	// std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
-                        	join_server_response(cli, (*channel_ite));
+                            message = ":" + cli.getNickName() + " JOIN " + (*channel_ite).getName() + "\r\n";
+                        	(*channel_ite).broadcastMessage(&cli, message);
+                            join_server_response(cli, (*channel_ite));
 				    		return 1; //channel exist
                     	}
                     	else
@@ -98,6 +102,8 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
                             if(split_keys[i] == (*channel_ite).getKey())
                             {
                                 (*channel_ite).addClientToChannel(cli, i, split_keys, false);
+                                message = ":" + cli.getNickName() + " JOIN " + (*channel_ite).getName() + "\r\n";
+                        	    (*channel_ite).broadcastMessage(&cli, message);
                         	    join_server_response(cli, (*channel_ite));
 				    		    return 1;
                             }

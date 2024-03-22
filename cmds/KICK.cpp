@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/22 00:42:00 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/22 02:37:11 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,11 +50,12 @@ int		Server::handleKickCommand(t_parc &parc, Client &cli)
             send(client_fd, newmsg.c_str(), newmsg.size(), 0);
             return(0); //failure
         }
+        
         else
         {
-            channel_ptr->kickUser(parc.params[1]);
-            newmsg = ":" + cli.getNickName() + " KICK " + channel_ptr->getName() + " " + parc.params[1] + "\r\n";
+            newmsg = ":" + cli.getNickName() + " KICK " + channel_ptr->getName() + " " + parc.params[1] + " :" + parc.params[1] + "\r\n";
 	        channel_ptr->broadcastMessageServer(newmsg);
+            channel_ptr->kickUser(parc.params[1]);
         }
     }
     return(1);
