@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/22 11:07:01 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/22 11:09:50 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,9 +148,10 @@ void Server::printClients() {
 }
 
 void Server::printChannelsAndClients() {
-    for (auto& channel : channels) {
-        std::cout << "Channel: " << channel.getName() << std::endl;
-        channel.listUsers();
+	std::vector<Channel>::iterator it;
+    for (it = channels.begin(); it != channels.end(); it++)	{
+        std::cout << "Channel: " << (*it).getName() << std::endl;
+        (*it).listUsers();
     }
 }
 

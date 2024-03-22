@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   channel.cpp                                        :+:      :+:    :+:   */
+/*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 00:48:12 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/22 02:05:51 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/22 11:24:35 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,8 +23,9 @@ Channel::~Channel() {
 
 void Channel::listUsers() const {
 	std::cout  << "Listing Users" << std::endl << "====================" << std::endl;
-	for (const auto& user : users) {
-		std::cout << user.client.getNickName() << "   --  " << (user.isOperator ? "Operator" : "Not Operator") << std::endl;
+	std::vector<ChannelMember>::const_iterator ite;
+	for (ite = users.begin(); ite != users.end(); ite++)	{
+		std::cout << (*ite).client.getNickName() << "   --  " << ((*ite).isOperator ? "Operator" : "Not Operator") << std::endl;
 	}
 }
 /*                                        _   

@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:11:38 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/22 03:22:40 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/22 11:19:09 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,7 +165,7 @@ void	Server::handleModeCommand(t_parc &parc, Client& cli)	{
 					Client *target = getClientByNick(*flagArgIt);
 					if (!target)
 					{
-						std::string	message = "461 " + cli.getNickName() + " " + parc.cmd + " :No such Nick/channel" + "\r\n";
+						std::string	message = "461 " + cli.getNickName() + " " + parc.params[2] + " :No such Nick" + "\r\n";
 						send(cli.getFd(), message.c_str(), message.size(), 0);
 						continue ;
 					}
