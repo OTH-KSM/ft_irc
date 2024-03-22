@@ -1,9 +1,9 @@
 CXX = c++ -fsanitize=address
 CPPFLAGS = -Wall -Wextra -Werror -std=c++11
-SRC = srcs/main.cpp srcs/server.cpp srcs/client.cpp srcs/channel.cpp srcs/utils.cpp	\
+SRC = srcs/main.cpp srcs/Server.cpp srcs/Client.cpp srcs/Channel.cpp \
 		cmds/JOIN.cpp cmds/INVITE.cpp cmds/MODE.cpp cmds/PRIVMSG.cpp cmds/QUIT.cpp 	\
 		cmds/WHOIS.cpp cmds/NICK.cpp cmds/USER.cpp cmds/PASS.cpp cmds/TOPIC.cpp \
-		cmds/KICK.cpp srcs/bot.cpp
+		cmds/KICK.cpp srcs/Botox.cpp
 OBJ = $(SRC:.cpp=.o)
 RM = rm -rf
 NAME = ircserv
