@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:29:23 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/20 08:35:47 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/22 04:12:22 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@
 #include <vector>
 #include <string>
 #include <csignal>
+#include <fstream>
 
 typedef struct message
 {

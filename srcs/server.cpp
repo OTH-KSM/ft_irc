@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   server.cpp                                         :+:      :+:    :+:   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/21 23:58:12 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/22 11:07:01 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -343,6 +343,10 @@ void    Server::parc(std::string message, Client& cli) {
 		handleTopicCommand(parc, cli);
 	else if (parc.cmd == "KICK")
 		handleKickCommand(parc, cli);
+	else if (parc.cmd == "SENDFILE")
+		handleSendFileCommand(parc, cli);
+	else if (parc.cmd == "GETFILE")
+		handleGetFileCommand(parc, cli);
 }
 
 

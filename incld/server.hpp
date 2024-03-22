@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:21:01 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/21 20:38:53 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/22 04:29:24 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@
 #include "irc.hpp"
 #include "client.hpp"
 #include "channel.hpp"
+
+class File;
 
 class Server	{
 	private:
@@ -29,6 +31,7 @@ class Server	{
 
 		std::map<int, Client>	clientMap;
 		std::vector<Channel>	channels;
+		std::vector<File>		files;
 
 	public:
 		static bool		Signal;
@@ -76,6 +79,9 @@ class Server	{
 		void		handleInviteCommand(t_parc &parc, Client &client);
 		int			handleTopicCommand(t_parc &parc, Client &client);
 		int			handleKickCommand(t_parc &parc, Client &client);
+
+		void    	handleSendFileCommand(t_parc &parc, Client &cli);
+		void    	handleGetFileCommand(t_parc &parc, Client &cli);
 
 		void		Bot(t_parc &parc, Client &cli);
 
