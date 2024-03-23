@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:05:39 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/22 02:30:03 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/23 15:05:58 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,10 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
                     	if((*channel_ite).CheckClientExistInChannel(cli) == 0)
                     	{
                         	// std::cout << "new client was added to " << (*channel_ite).getName() << std::endl;
-                        	(*channel_ite).addClientToChannel(cli, i, split_keys, false);
+                        	if((*channel_ite).getNumberOfUsers() == 0)
+                                (*channel_ite).addClientToChannel(cli, i, split_keys, true);
+                            else
+                                (*channel_ite).addClientToChannel(cli, i, split_keys, false);
                         	// std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
                             message = ":" + cli.getNickName() + " JOIN " + (*channel_ite).getName() + "\r\n";
                         	(*channel_ite).broadcastMessage(&cli, message);
@@ -101,7 +104,10 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
                         {
                             if(split_keys[i] == (*channel_ite).getKey())
                             {
-                                (*channel_ite).addClientToChannel(cli, i, split_keys, false);
+                                if((*channel_ite).getNumberOfUsers() == 0)
+                                    (*channel_ite).addClientToChannel(cli, i, split_keys, true);
+                                else
+                                    (*channel_ite).addClientToChannel(cli, i, split_keys, false);
                                 message = ":" + cli.getNickName() + " JOIN " + (*channel_ite).getName() + "\r\n";
                         	    (*channel_ite).broadcastMessage(&cli, message);
                         	    join_server_response(cli, (*channel_ite));

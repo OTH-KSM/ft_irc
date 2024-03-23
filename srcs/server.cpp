@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/22 11:09:50 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/23 14:35:11 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,11 +46,27 @@ void Server::sendInitialServerReplies(Client &cli) {
 
 
 	std::vector<std::string> asciiArtLines;
-	asciiArtLines.push_back(" _____");
-	asciiArtLines.push_back("|___ /    __ _   _ __ ___     ___       ___    ___   _ __  __   __   ___ _ __");
-	asciiArtLines.push_back("  |_ \\   / _` | | '_ ` _ \\   / _ \\     / __|  / _ \\ | '__| \\ \\ / /  / _ \\ '__|");
-	asciiArtLines.push_back(" ___) | | (_| | | | | | | | | (_) |    \\__ \\ |  __/ | |     \\ V /  |  __/ |");
-	asciiArtLines.push_back("|____/   \\__,_| |_| |_| |_|  \\___/     |___/  \\___| |_|      \\_/    \\___|_|");
+	asciiArtLines.push_back("                                                                                                          ");
+	asciiArtLines.push_back("                            ████                                                                          ");
+	asciiArtLines.push_back("                            ████                                                           █████    ████  ");
+	asciiArtLines.push_back("                                                                                           █████    ████  ");
+	asciiArtLines.push_back("                                                                                           █████    ████  ");
+	asciiArtLines.push_back("           ████        ██████████████     █████       ████        ████    ████    ████     █████    ████  ");
+	asciiArtLines.push_back("          █████       ███████████████     █████      █████       █████   █████   █████     █████    ████  ");
+	asciiArtLines.push_back("          █████       █████     █████     █████      █████       █████   █████   █████     █████    ████  ");
+	asciiArtLines.push_back("          █████       ████      █████     █████      █████       █████   █████   █████     █████    ████  ");
+	asciiArtLines.push_back("          █████       ████      █████     █████      █████       █████   █████   █████     █████    ████  ");
+	asciiArtLines.push_back("          █████       ████      █████     █████      █████       █████   █████   █████     █████    ████  ");
+	asciiArtLines.push_back("          ███████████████████████████     ██████████████████████████████████████████████████████    ████  ");
+	asciiArtLines.push_back("          ███████████████████████████     ██████████████████████████████████████████████████████    ████  ");
+	asciiArtLines.push_back("          ███████████████████████████    ███████████████████████████████████████████████████████    ████  ");
+	asciiArtLines.push_back("          █████                          ██████                                                           ");
+	asciiArtLines.push_back("         █████                           █████       ████   ████                                          ");
+	asciiArtLines.push_back("       █████                           ████     	  ████   ████                                  		   ");
+	asciiArtLines.push_back("     █████                           ████              █     █                                            ");
+	asciiArtLines.push_back("   █████                           ████                                                                   ");
+	asciiArtLines.push_back(" ████                            ███                                                                      ");
+
 
 	for (std::vector<std::string>::iterator it = asciiArtLines.begin(); it != asciiArtLines.end(); ++it) {
 		message = ":" + this->Servername + " 375 " + cli.getNickName() + " :" + *it + "\r\n";
@@ -108,6 +124,15 @@ Channel*	Server::getChannelByName(std::string name) {
 * \____| |_____| |_| \_| |_____| |_| \_\ /_/   \_\ |_____|
 * GENERAL SECTION STARTS HERE
 */
+
+void	Server::deleteClient(Client &cli) {
+	for (std::map<int, Client>::iterator it = clientMap.begin(); it != clientMap.end(); ++it) {
+		if (it->second.getNickName() == cli.getNickName()) {
+			clientMap.erase(it);
+			break;
+		}
+	}
+}
 
 int Server::check_valid_channel_name(std::string channel_name)
 {
@@ -178,10 +203,13 @@ void    Server::init()  {
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 	struct addrinfo *bind_address;
-	getaddrinfo(0, "8080", &hints, &bind_address);
+	getaddrinfo("10.11.1.11", "8080", &hints, &bind_address);
 
 	if((this->SersocketFD = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol)) == -1)
 		throw std::runtime_error("Error in Socket");
+	int reuse = 1;
+	if (setsockopt(this->SersocketFD, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) == -1)
+        throw std::runtime_error("Error in setsockopt");
 	if(bind(this->SersocketFD, bind_address->ai_addr, bind_address->ai_addrlen) != 0)
 		throw std::runtime_error("Error in Bind");
 	if (listen(this->SersocketFD, 10) < 0)
@@ -237,7 +265,7 @@ void    Server::init()  {
 					std::string str(read);
 					try
 					{
-						Server::parc(str, clientMap[i]);
+						Server::parc(str, clientMap[i], master);
 					}
 					catch(const std::exception& e)
 					{
@@ -275,35 +303,38 @@ std::string parseClientMessage(const std::string& message) {
     return parsedMessage;
 }
 
-void    Server::parc(std::string message, Client& cli) {
+void    Server::parc(std::string message1, Client& cli, fd_set &master) {
 	t_parc      parc;
 	std::string temp;
 	std::stringstream cc;
-
-	if (containsCtrlD(message)) {
+	std::istringstream ss(message1);
+	std::string message;
+	while (std::getline(ss, message, '\n')) {
+		if (containsCtrlD(message)) {
 		message = parseClientMessage(message);
-	}
-	size_t prefixEnd = message.find(":", 2);
-	if (prefixEnd != std::string::npos) {
-		std::string prefix = message.substr(prefixEnd + 1, message.length() - 2);
-		message.erase(prefixEnd, message.length() - 2);
+		}
+		size_t prefixEnd = message.find(":", 2);
+		if (prefixEnd != std::string::npos) {
+			std::string prefix = message.substr(prefixEnd + 1, message.length() - 2);
+			message.erase(prefixEnd, message.length());
+			cc.str(message);
+			while (cc >> temp)  {
+				parc.params.push_back(temp);
+			}
+			parc.params.push_back(prefix);
+		}
 		cc.str(message);
 		while (cc >> temp)  {
 			parc.params.push_back(temp);
 		}
-		parc.params.push_back(prefix);
-	}
-	cc.str(message);
-	while (cc >> temp)  {
-		parc.params.push_back(temp);
-	}
-	if (!parc.params.empty() && !parc.params.front().empty() &&  parc.params.front()[0] == ':')  {
-		parc.prefix = parc.params.front();
-		parc.params.pop_front();
-	}
-	if (!parc.params.empty())    {
-		parc.cmd = parc.params.front();
-		parc.params.pop_front();
+		if (!parc.params.empty() && !parc.params.front().empty() &&  parc.params.front()[0] == ':')  {
+			parc.prefix = parc.params.front();
+			parc.params.pop_front();
+		}
+		if (!parc.params.empty())    {
+			parc.cmd = parc.params.front();
+			parc.params.pop_front();
+		}
 	}
 	
 	/*	PRINT COMMANDS	*/
@@ -331,7 +362,7 @@ void    Server::parc(std::string message, Client& cli) {
 	else if (parc.cmd == "PRIVMSG")
 		handlePrivmsgCommand(parc, cli);
     else if (parc.cmd == "QUIT")
-        handleQuitCommand(*this, parc, cli);
+        handleQuitCommand(*this, parc, cli, master);
 	else if (parc.cmd == "MODE")
 		handleModeCommand(parc, cli);
 	else if (parc.cmd == "PRINT")

@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:21:01 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/22 04:29:24 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/23 15:06:59 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ class Server	{
   
  
 		void		init(void);
-		void		parc(std::string message, Client& cli);
+		void		parc(std::string message, Client& cli, fd_set &master);
 
 	public:
 		Client*					getClientByNick(std::string nick);
@@ -49,7 +49,8 @@ class Server	{
 		std::vector<Channel> 	getChannels();
 		Channel*				getChannelByName(std::string name);
 
-		
+		void	     			deleteClient(Client &cli);
+
 		void		printClients( void );
 		int			isClientExist(std::string nick, int fd);
 		void		sendOneToOne(Client& cli, std::string dest, std::string message);
@@ -74,7 +75,7 @@ class Server	{
 		void		handleUserCommand(t_parc &parc, Client& cli);
 		void		handlePrivmsgCommand(t_parc &parc, Client& cli);
 		void    	handleJoinCommand(t_parc &parc, Client& cli);
-		void    	handleQuitCommand(Server &srv, t_parc &parc, Client& cli);
+		void    	handleQuitCommand(Server &srv, t_parc &parc, Client& cli, fd_set &master);
 		void		handleModeCommand(t_parc &parc, Client& cli);
 		void		handleInviteCommand(t_parc &parc, Client &client);
 		int			handleTopicCommand(t_parc &parc, Client &client);
@@ -86,9 +87,9 @@ class Server	{
 		void		Bot(t_parc &parc, Client &cli);
 
 	public:
-		void 	removeChannel(Channel channel);
-		void	printChannelsAndClients();
-		void    join_server_response(Client &cli, Channel &channel) ;
+		void 		removeChannel(Channel channel);
+		void		printChannelsAndClients();
+		void    	join_server_response(Client &cli, Channel &channel) ;
 		
 };
 
