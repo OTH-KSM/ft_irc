@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/23 14:35:11 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/23 15:25:11 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -357,8 +357,6 @@ void    Server::parc(std::string message1, Client& cli, fd_set &master) {
 	}
     else if (parc.cmd == "JOIN")
         handleJoinCommand(parc, cli);
-	// else if (parc.cmd == "WHOIS")
-	// 	handleWhoisCommand(parc, cli);
 	else if (parc.cmd == "PRIVMSG")
 		handlePrivmsgCommand(parc, cli);
     else if (parc.cmd == "QUIT")
