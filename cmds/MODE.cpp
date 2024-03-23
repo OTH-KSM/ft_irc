@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:11:38 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/23 16:35:06 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/23 19:59:45 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,6 +173,13 @@ void	Server::handleModeCommand(t_parc &parc, Client& cli)	{
 					if (!target)
 					{
 						std::string	message = "461 " + cli.getNickName() + " " + parc.params[2] + " :No such Nick" + "\r\n";
+						send(cli.getFd(), message.c_str(), message.size(), 0);
+						continue ;
+					}
+					int isIn = channel->CheckClientExistInChannel(*target);
+					if (!isIn)
+					{
+						std::string	message = "441 " + cli.getNickName() + " :Cannot change mode for other users\r\n";
 						send(cli.getFd(), message.c_str(), message.size(), 0);
 						continue ;
 					}

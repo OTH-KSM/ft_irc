@@ -6,11 +6,14 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:09:20 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/23 16:02:50 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/23 18:23:45 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../incld/irc.hpp"
+
+// INVITE <nickname> <channel>
+//          [0] 	   [1]
 
 void	Server::handleInviteCommand(t_parc &parc, Client &cli)
 {
@@ -20,24 +23,29 @@ void	Server::handleInviteCommand(t_parc &parc, Client &cli)
 		return ;
 	}
 	Channel *channel = getChannelByName(parc.params[1]);
+	if (!channel)
+	{
+		throw std::runtime_error("403 " + cli.getNickName() + " " + parc.params[1] + " :No such channel");
+		return ;
+	}
 	if (channel && channel->getInviteOnly() && !channel->isOperator(cli))	{
-		throw std::runtime_error("482 " + cli.getNickName() + " " + parc.params[0] + " :You're not channel operator");
+		throw std::runtime_error("482 " + cli.getNickName() + " " + parc.params[1] + " :You're not channel operator");
 	}
 	if (channel && !channel->CheckClientExistInChannel(cli)){
-		throw std::runtime_error("442 " + cli.getNickName() + " " + parc.params[0] + " :You're not on that channel");
+		throw std::runtime_error("442 " + cli.getNickName() + " " + parc.params[1] + " :You're not on that channel");
 	}
 	Client *target = getClientByNick(parc.params[0]);
 	if (!target)
 	{
-		throw std::runtime_error("461 " + cli.getNickName() + " " + parc.cmd + " :No such Nick/channel");
+		throw std::runtime_error("401 " + cli.getNickName() + " " + parc.params[0] + " :No such Nick");
 		return ;
 	}
 	if (channel && channel->CheckClientExistInChannel(*target))
 	{
-		throw std::runtime_error("443 " + cli.getNickName() + " " + parc.params[1] + " :is already on channel");
+		throw std::runtime_error("443 " + cli.getNickName() + " " + parc.params[0] + " " + parc.params[1] + " :is already on channel");
 	}
 	target->addChannelInvitation(parc.params[1]);
-	std::string	message = cli.getNickName() + " INVITE " + parc.params[0] + " " + parc.params[1] + "\r\n";
+	std::string	message = ":" + cli.getNickName() + " INVITE " + parc.params[0] + " " + parc.params[1] + "\r\n";
 	send(cli.getFd(), message.c_str(), message.size(), 0);
 	
 }
