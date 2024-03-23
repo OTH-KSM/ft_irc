@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:11:38 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/23 15:41:34 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/23 16:35:06 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,12 +80,20 @@ std::string Channel::getChannelModes(void)
 		channelFlagModes.append("i");
 	if (this->getTopicRestricted())
 		channelFlagModes.append("t");
+	if (this->getNeedKey())
+	{
+		channelFlagModes.append("k");
+		channelArgModes.append(" ");
+		channelArgModes.append(this->getKey());
+		channelArgModes.append(" ");
+	}
 	if (this->getLimitedUsers() != -1)
 	{
 		std::stringstream ss;
 		ss << this->getLimitedUsers();
 		channelFlagModes.append("l");
 		channelArgModes.append(ss.str());
+		channelArgModes.append(" ");
 	}
 	if (!channelFlagModes.empty())
 	{
@@ -94,7 +102,6 @@ std::string Channel::getChannelModes(void)
 	}
 	else
 		channelModes.append(" no modes is set");
-	channelModes.append(" ");
 	channelModes.append(channelArgModes);
 	return (channelModes);
 }
