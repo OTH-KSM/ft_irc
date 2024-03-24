@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 00:48:12 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/22 11:24:35 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/23 21:36:26 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,13 @@ Channel::Channel()  {
     
 }
 
+Channel::Channel(std::string name) : name(lower_string(name)), needKey(0)
+{
+}
+
+Channel::Channel(std::string name, std::string key) :name(lower_string(name)), needKey(1), key(key)
+{
+}
 Channel::~Channel() {
     
 }
@@ -214,11 +221,11 @@ int     Channel::getClientsNumber(){
     return(users.size());
 }
 void    Channel::setName(std::string name)   {
-    this->name = name;
+    this->name = lower_string(name);
 }
 
 std::string Channel::getName( void )    {
-    return this->name;
+    return lower_string(this->name);
 }
 
 int  Channel::CheckClientExistInChannel(Client &cli)
@@ -273,5 +280,11 @@ void Channel::removeMember(Server &srv, Client client)
 		srv.removeChannel(*this);
 }
 
-
+std::string	lower_string(std::string &name)
+{
+	std::string ret;
+	for(std::string::iterator ite = name.begin(); ite != name.end(); ite++)
+		ret.push_back(tolower(*ite));
+	return(ret);
+}
 

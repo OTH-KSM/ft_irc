@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:09:20 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/23 18:23:45 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/23 21:02:16 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,6 @@ void	Server::handleInviteCommand(t_parc &parc, Client &cli)
 	}
 	target->addChannelInvitation(parc.params[1]);
 	std::string	message = ":" + cli.getNickName() + " INVITE " + parc.params[0] + " " + parc.params[1] + "\r\n";
-	send(cli.getFd(), message.c_str(), message.size(), 0);
+	send(target->getFd(), message.c_str(), message.size(), 0);
 	
 }

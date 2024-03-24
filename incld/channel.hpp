@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:17:10 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/22 02:07:10 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/23 21:39:58 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,9 +53,9 @@ class	Channel	{
 		std::string		getTimeTopicWasSet();
 		int				getNumberOfUsers();
 
-		bool		isOperator(Client &client);
+		bool			isOperator(Client &client);
 
-
+		
 
 		void			setInviteOnly(bool isInviteOnly);
 		void			setTopicRestricted(bool isTopicRestricted);
@@ -78,8 +78,8 @@ class	Channel	{
 
 	public:
 		Channel();
-		Channel(std::string name) : name(name), needKey(0){}; //name should be transformed to lower (case sensitivity)
-		Channel(std::string name, std::string key) : name(name), needKey(1), key(key){}
+		Channel(std::string name); //name should be transformed to lower (case sensitivity)
+		Channel(std::string name, std::string key);
 		~Channel();
 
 		void    setName(std::string name);
@@ -98,5 +98,7 @@ class	Channel	{
 		void	removeMember(Server &srv, Client client);
 		
 };
+
+std::string		lower_string(std::string &name);
 
 #endif

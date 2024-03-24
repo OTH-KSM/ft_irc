@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 12:32:06 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/20 09:12:52 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 01:34:09 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ int main(int argc, char *argv[])    {
         return (1);
     }
     int port = atoi(argv[1]);
-    if (port < 0 || port > 65535)   {
+    if (port < 1024 || port > 65535)   {
         std::cerr << "Error: Port number must be between 0 and 65535." << std::endl;
         return 1;
     }

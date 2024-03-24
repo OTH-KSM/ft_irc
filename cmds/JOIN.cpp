@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:05:39 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/23 15:46:09 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/23 21:33:26 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,11 +62,12 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
 
     for(size_t i = 0; i < split_channels.size(); i++)
     {
-        if(check_valid_channel_name(split_channels[i]))
+        if(check_valid_channel_name(lower_string(split_channels[i])))
             continue;
         for (std::vector<Channel>::iterator channel_ite = channels.begin(); channel_ite != channels.end(); channel_ite++) {// gotta check keys  
-            if ((*channel_ite).getName() == split_channels[i])
+            if ((*channel_ite).getName() == lower_string(split_channels[i]))
             {
+                std::cout << (*channel_ite).getName() << std::endl;
                 if((*channel_ite).getLimitedUsers() != -1 && ((*channel_ite).getNumberOfUsers() == (*channel_ite).getLimitedUsers()))
                 {
                     message = ":" + Servername + " 473 " + cli.getNickName() + " " + (*channel_ite).getName() + " :Cannot join channel (+l) - channel is full, try again later\r\n";
@@ -136,14 +137,16 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
         if(split_keys.size() >= i + 1)
         {
             Channel new_channel(split_channels[i], split_keys[i]);
-            new_channel.addClientToChannel(cli, i, split_keys, true); // this client should become a client operator u gotta handle it.
+            new_channel.addClientToChannel(cli, i, split_keys, true);
+            std::cout << new_channel.getName() << std::endl;
             channels.push_back(new_channel);
             join_server_response(cli, new_channel);
         }
         else
         {
             Channel new_channel(split_channels[i]);
-            new_channel.addClientToChannel(cli, i, split_keys, true); // this client should become a client operator u gotta handle it.
+            new_channel.addClientToChannel(cli, i, split_keys, true);
+            std::cout << new_channel.getName() << std::endl;
             channels.push_back(new_channel);
             join_server_response(cli, new_channel);
         }
