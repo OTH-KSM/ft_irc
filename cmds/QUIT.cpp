@@ -6,38 +6,38 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:55:12 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/23 15:04:13 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 03:26:32 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../incld/irc.hpp"
 
 
-void Server::handleQuitCommand(Server &srv, t_parc &parc, Client& cli, fd_set &master) {
-	int state = cli.getRegistrationState();
-	if (state!= 3)	{
-		close(cli.getFd());
-		return ;
+void Server::handleQuitCommand(Server &srv, int i, fd_set &master, bool isForced) {
+	std::string quitMessage;
+	if (isForced == false)	{
+		int state = clientMap[i].getRegistrationState();
+		if (state!= 3)	{
+			close(clientMap[i].getFd());
+			return ;
+		}
 	}
     std::vector<Channel> channels = getChannels();
-    std::string quitMessage = parc.params.size() > 0 ? parc.params[0] : "No reason given";    
-    std::string message = ":" + cli.getNickName() + " QUIT :Client Quit\r\n";
 
+	
     for (size_t j = 0; j < channels.size(); j++)
     {
-        if (channels[j].CheckClientExistInChannel(cli))
+        if (channels[j].CheckClientExistInChannel(clientMap[i]))
         {
-            channels[j].broadcastMessage(&cli, ":" + cli.getNickName() + " QUIT :" + quitMessage + "\r\n");
-            channels[j].removeMember(srv, cli);
+            channels[j].broadcastMessage(&clientMap[i], ":" + clientMap[i].getNickName() + " QUIT :leaving...\r\n");
+            channels[j].removeMember(srv, clientMap[i]);
         }
-    }
-	int fd = cli.getFd();
-
-    send(fd, message.c_str(), message.size(), 0);
-    FD_CLR(cli.getFd(), &master);
-    deleteClient(cli);
-
+    }	
+	int fd = i;
+	
+    FD_CLR(i, &master);
 	close(fd);
+    clientMap.erase(fd);
 }
 
 void Server::removeChannel(Channel channel)

@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:21:01 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/24 01:33:25 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 15:32:48 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ class Server	{
 		int			port;
 		std::string	password;
 		int			SersocketFD;
+		std::string	input;
 
 		std::map<int, Client>	clientMap;
 		std::vector<Channel>	channels;
@@ -41,15 +42,13 @@ class Server	{
   
  
 		void		init(void);
-		void		parc(std::string message, Client& cli, fd_set &master);
+		void		parc(std::string message, Client& cli);
 
 	public:
 		Client*					getClientByNick(std::string nick);
 		Client&					getClientByFd(int fd);
 		std::vector<Channel> 	getChannels();
 		Channel*				getChannelByName(std::string name);
-
-		void	     			deleteClient(Client &cli);
 
 		void		printClients( void );
 		int			isClientExist(std::string nick, int fd);
@@ -76,7 +75,7 @@ class Server	{
 		void		handleUserCommand(t_parc &parc, Client& cli);
 		void		handlePrivmsgCommand(t_parc &parc, Client& cli);
 		void    	handleJoinCommand(t_parc &parc, Client& cli);
-		void    	handleQuitCommand(Server &srv, t_parc &parc, Client& cli, fd_set &master);
+		void    	handleQuitCommand(Server &srv, int i, fd_set &master, bool isForced);
 		void		handleModeCommand(t_parc &parc, Client& cli);
 		void		handleInviteCommand(t_parc &parc, Client &client);
 		int			handleTopicCommand(t_parc &parc, Client &client);

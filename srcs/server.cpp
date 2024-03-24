@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/23 15:25:11 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 15:33:06 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,15 +125,6 @@ Channel*	Server::getChannelByName(std::string name) {
 * GENERAL SECTION STARTS HERE
 */
 
-void	Server::deleteClient(Client &cli) {
-	for (std::map<int, Client>::iterator it = clientMap.begin(); it != clientMap.end(); ++it) {
-		if (it->second.getNickName() == cli.getNickName()) {
-			clientMap.erase(it);
-			break;
-		}
-	}
-}
-
 int Server::check_valid_channel_name(std::string channel_name)
 {
 	std::cout << "channel_name: " << channel_name << std::endl;
@@ -212,7 +203,7 @@ void    Server::init()  {
         throw std::runtime_error("Error in setsockopt");
 	if(bind(this->SersocketFD, bind_address->ai_addr, bind_address->ai_addrlen) != 0)
 		throw std::runtime_error("Error in Bind");
-	if (listen(this->SersocketFD, 10) < 0)
+	if (listen(this->SersocketFD, SOMAXCONN) < 0)
 		throw std::runtime_error("Error in Listen");
 
 
@@ -227,6 +218,7 @@ void    Server::init()  {
 	{
 		fd_set reads;
 		reads = master;
+		
 		if(select(max_socket + 1, &reads, 0, 0, 0) < 0)
 			throw std::runtime_error("Error in Select");
 		int i;
@@ -255,24 +247,27 @@ void    Server::init()  {
 				{
 					char read[1024];
 					int bytes_received = recv(i, read, 1024, 0);
-					if(bytes_received < 1)
-					{
-						FD_CLR(i, &master);
-						close(i);
-						continue;
+					std::cout << bytes_received << std::endl;
+					if(bytes_received < 1)	{
+						handleQuitCommand(*this, i, master, true);
+						continue ;
 					}
 					read[bytes_received] = 0;
-					std::string str(read);
-					try
-					{
-						Server::parc(str, clientMap[i], master);
-					}
-					catch(const std::exception& e)
-					{
-						std::string cont = e.what();
-						std::cout << this->Servername << std::endl;
-						std::string message = ":YourServer " + cont + "\r\n";
-						send(i, message.c_str(), message.size(), 0);
+					this->input.append(read);
+					std::cout << this->input << std::endl;
+					if (this->input.find("\n") != std::string::npos)	{
+						try
+						{
+							Server::parc(this->input, clientMap[i]);
+						}
+						catch(const std::exception& e)
+						{
+							std::string cont = e.what();
+							std::cout << this->Servername << std::endl;
+							std::string message = ":YourServer " + cont + "\r\n";
+							send(i, message.c_str(), message.size(), 0);
+						}
+						this->input.clear();
 					}
 				}
 			}
@@ -282,59 +277,32 @@ void    Server::init()  {
 
 /************************ GENERAL ************************/
 
-bool containsCtrlD(const std::string& message) {
-    return message.find("^D") != std::string::npos;
-}
-
-std::string parseClientMessage(const std::string& message) {
-    if (!containsCtrlD(message)) {
-        return message;
-    }
-
-    std::string parsedMessage = message;
-    std::string::size_type n = 0;
-    std::string ctrlD = "^D";
-
-    while ( ( n = parsedMessage.find( ctrlD, n ) ) != std::string::npos )
-    {
-        parsedMessage.erase(n, ctrlD.length());
-    }
-
-    return parsedMessage;
-}
-
-void    Server::parc(std::string message1, Client& cli, fd_set &master) {
+void    Server::parc(std::string message, Client& cli) {
 	t_parc      parc;
 	std::string temp;
 	std::stringstream cc;
-	std::istringstream ss(message1);
-	std::string message;
-	while (std::getline(ss, message, '\n')) {
-		if (containsCtrlD(message)) {
-		message = parseClientMessage(message);
-		}
-		size_t prefixEnd = message.find(":", 2);
-		if (prefixEnd != std::string::npos) {
-			std::string prefix = message.substr(prefixEnd + 1, message.length() - 2);
-			message.erase(prefixEnd, message.length());
-			cc.str(message);
-			while (cc >> temp)  {
-				parc.params.push_back(temp);
-			}
-			parc.params.push_back(prefix);
-		}
+	
+	size_t prefixEnd = message.find(":", 2);
+	if (prefixEnd != std::string::npos) {
+		std::string prefix = message.substr(prefixEnd + 1, message.length() - 2);
+		message.erase(prefixEnd, message.length());
 		cc.str(message);
 		while (cc >> temp)  {
 			parc.params.push_back(temp);
 		}
-		if (!parc.params.empty() && !parc.params.front().empty() &&  parc.params.front()[0] == ':')  {
-			parc.prefix = parc.params.front();
-			parc.params.pop_front();
-		}
-		if (!parc.params.empty())    {
-			parc.cmd = parc.params.front();
-			parc.params.pop_front();
-		}
+		parc.params.push_back(prefix);
+	}
+	cc.str(message);
+	while (cc >> temp)  {
+		parc.params.push_back(temp);
+	}
+	if (!parc.params.empty() && !parc.params.front().empty() &&  parc.params.front()[0] == ':')  {
+		parc.prefix = parc.params.front();
+		parc.params.pop_front();
+	}
+	if (!parc.params.empty())    {
+		parc.cmd = parc.params.front();
+		parc.params.pop_front();
 	}
 	
 	/*	PRINT COMMANDS	*/
@@ -359,8 +327,6 @@ void    Server::parc(std::string message1, Client& cli, fd_set &master) {
         handleJoinCommand(parc, cli);
 	else if (parc.cmd == "PRIVMSG")
 		handlePrivmsgCommand(parc, cli);
-    else if (parc.cmd == "QUIT")
-        handleQuitCommand(*this, parc, cli, master);
 	else if (parc.cmd == "MODE")
 		handleModeCommand(parc, cli);
 	else if (parc.cmd == "PRINT")
@@ -377,6 +343,8 @@ void    Server::parc(std::string message1, Client& cli, fd_set &master) {
 		handleSendFileCommand(parc, cli);
 	else if (parc.cmd == "GETFILE")
 		handleGetFileCommand(parc, cli);
+	else
+		handleUnknownCommand(parc, cli);
 }
 
 

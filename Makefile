@@ -22,12 +22,5 @@ fclean : clean
 re : fclean all
 
 
-# Use ctrl+D to send the command in several parts: ’com’, then ’man’, then ’d\n’
-# Just like in the subject, using nc, try to send partial commands. Check that the server answers correctly. With a partial command sent, ensure that other connections still run fine.
-
-# Your reference client must be able to connect to your server without encountering
-#  any error.
-
-# Unexpectedly kill a client. Then check that the server is still operational for the other connections and for any new incoming client.
 
 # the lower case function should be in every command contained the channel as parameter
