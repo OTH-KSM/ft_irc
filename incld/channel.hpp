@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:17:10 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/23 21:39:58 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 21:26:28 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,8 +73,6 @@ class	Channel	{
 		void 			removeOperator(Client &client);
 		void 			setLimitedUsers(int limitedUsers);
 		
-
-		void 		listUsers() const;
 
 	public:
 		Channel();

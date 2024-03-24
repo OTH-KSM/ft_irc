@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:08:19 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/24 15:59:14 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 21:26:07 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,6 @@ void    Server::sendToChannel(Client &cli, std::string dest, std::string message
             {
 				if ((*ite).client.getNickName() == cli.getNickName())
 					continue;
-					std::cout << (*it).getName() << std::endl;
                 std::string newmsg = ":" + cli.getNickName() + " PRIVMSG " + (*it).getName() + " :" + message + "\r\n";
                 send((*ite).client.getFd(), newmsg.c_str(), newmsg.size(), 0);
             } 

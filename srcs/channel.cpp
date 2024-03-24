@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 00:48:12 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/23 21:36:26 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 21:26:32 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,13 +28,6 @@ Channel::~Channel() {
     
 }
 
-void Channel::listUsers() const {
-	std::cout  << "Listing Users" << std::endl << "====================" << std::endl;
-	std::vector<ChannelMember>::const_iterator ite;
-	for (ite = users.begin(); ite != users.end(); ite++)	{
-		std::cout << (*ite).client.getNickName() << "   --  " << ((*ite).isOperator ? "Operator" : "Not Operator") << std::endl;
-	}
-}
 /*                                        _   
 * _ __   _____      __  _ __   __ _ _ __| |_ 
 *| '_ \ / _ \ \ /\ / / | '_ \ / _` | '__| __|
@@ -199,7 +192,7 @@ void Channel::removeOperator(Client &client)
 }
 
 void Channel::addClientToChannel(Client& cli, size_t i, std::vector<std::string> keys, bool op) {
-    if(needKey == 0 || (needKey == 1 && keys.size() >= i + 1 && keys[i] == key)) //check password
+    if(needKey == 0 || (needKey == 1 && keys.size() >= i + 1 && keys[i] == key))
     {
         if(cli.getChannelsJoined() == 10)
             throw std::runtime_error(" :Client cant join more than 10 client");
@@ -207,7 +200,7 @@ void Channel::addClientToChannel(Client& cli, size_t i, std::vector<std::string>
         member.client = cli;
         member.isOperator = op;
         this->users.push_back(member);
-        cli.increment_channels_joined();// added this cause max channels is 10 for each client
+        cli.increment_channels_joined();
     }
     return;
 }

@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/21 12:32:06 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/24 01:34:09 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 21:22:07 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,6 @@ int main(int argc, char *argv[])    {
     }
     catch ( std::exception &e )   {
         std::cout << e.what() << std::endl;
-        srv.printClients();
         std::cout << "Server operation has been suspended. Please check the error message above and try again." << std::endl;
     }
 }

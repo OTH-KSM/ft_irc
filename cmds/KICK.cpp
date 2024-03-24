@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/24 16:35:36 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 21:17:37 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,25 +31,25 @@ int		Server::handleKickCommand(t_parc &parc, Client &cli)
         {
             newmsg = ":" + Servername + " 403 " + cli.getNickName() + " " + parc.params[0] + " :No such channel\r\n";
             send(client_fd, newmsg.c_str(), newmsg.size(), 0);
-            return(0); //failure
+            return(0);
         }
         else if(channel_ptr && channel_ptr->CheckClientExistInChannel(cli) == 0)
         {
             newmsg = ":" + Servername + " 442 " + cli.getNickName() + " " + channel_ptr->getName() + " :You're not on that channel\r\n";
             send(client_fd, newmsg.c_str(), newmsg.size(), 0);
-            return(0); //failure
+            return(0);
         }
         else if(channel_ptr && channel_ptr->CheckClientExistInChannel(lower_string(parc.params[1])) == 0)
         {
             newmsg = ":" + Servername + " 441 " + cli.getNickName() + " " + parc.params[1] + " " + channel_ptr->getName() + " :They aren't on that channel\r\n";
             send(client_fd, newmsg.c_str(), newmsg.size(), 0);
-            return(0); //failure
+            return(0);
         }
         else if(channel_ptr && channel_ptr->isOperator(cli) == false)
         {
             newmsg = ":" + Servername + " 482 " + cli.getNickName() + " " +  channel_ptr->getName() + " :You're not channel operator\r\n";
             send(client_fd, newmsg.c_str(), newmsg.size(), 0);
-            return(0); //failure
+            return(0);
         }
         
         else

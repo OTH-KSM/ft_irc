@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:05:39 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/24 16:34:29 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 21:19:09 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,30 +50,33 @@ void    Server::join_server_response(Client &cli, Channel &channel)
         if((ite + 1) != channel_users.end())
             users_list += " ";
     }
-    std::cout << "this is the users_list" << users_list << std::endl; // not tested
-    newmsg = ":" + Servername + " 353 " + cli.getNickName() + " @ " + channel.getName() + " :" + users_list + "\r\n"; // handle the channel op
+    newmsg = ":" + Servername + " 353 " + cli.getNickName() + " @ " + channel.getName() + " :" + users_list + "\r\n";
     send(client_fd, newmsg.c_str(), newmsg.size(), 0);
-    newmsg = ":" + Servername + " 366 " + cli.getNickName() + " " + channel.getName() + " :End of /NAMES list.\r\n"; // handle the channel op
+    newmsg = ":" + Servername + " 366 " + cli.getNickName() + " " + channel.getName() + " :End of /NAMES list.\r\n";
     send(client_fd, newmsg.c_str(), newmsg.size(), 0);
 }
 
 int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<std::string> split_keys, Client &cli) {
 	std::string message;
+    int continue_flag = 0;
     int client_fd = cli.getFd();
 
     for(size_t i = 0; i < split_channels.size(); i++)
     {
         if(check_valid_channel_name(lower_string(split_channels[i])))
-            continue;
-        for (std::vector<Channel>::iterator channel_ite = channels.begin(); channel_ite != channels.end(); channel_ite++) {// gotta check keys  
+        {
+            continue_flag = 1;
+            break;
+        }
+        for (std::vector<Channel>::iterator channel_ite = channels.begin(); channel_ite != channels.end(); channel_ite++) {
             if ((*channel_ite).getName() == lower_string(split_channels[i]))
             {
-                std::cout << (*channel_ite).getName() << std::endl;
                 if((*channel_ite).getLimitedUsers() != -1 && ((*channel_ite).getNumberOfUsers() == (*channel_ite).getLimitedUsers()))
                 {
                     message = ":" + Servername + " 473 " + cli.getNickName() + " " + (*channel_ite).getName() + " :Cannot join channel (+l) - channel is full, try again later\r\n";
                     send(client_fd, message.c_str(), message.size(), 0);
-                    return(0);
+                    continue_flag = 1;
+                    break;
                 }
                 if(((*channel_ite).getInviteOnly() == 1 && cli.checkClientGotInvitation((*channel_ite).getName())) || (*channel_ite).getInviteOnly() == 0)
                 {
@@ -81,27 +84,28 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
 				    {
                     	if((*channel_ite).CheckClientExistInChannel(cli) == 0)
                     	{
-                        	// std::cout << "new client was added to " << (*channel_ite).getName() << std::endl;
                         	if((*channel_ite).getNumberOfUsers() == 0)
                                 (*channel_ite).addClientToChannel(cli, i, split_keys, true);
                             else
                                 (*channel_ite).addClientToChannel(cli, i, split_keys, false);
-                        	// std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
                             message = ":" + cli.getNickName() + " JOIN " + (*channel_ite).getName() + "\r\n";
                         	(*channel_ite).broadcastMessage(&cli, message);
                             join_server_response(cli, (*channel_ite));
-				    		return 1; //channel exist
+				    		continue_flag = 1;
+                            break;
                     	}
                     	else
                	    	{
-                        	std::cout << "channels " << channels.size() << " " << "channel_clients in " << (*channel_ite).getName() << " is " << (*channel_ite).getClientsNumber() << std::endl;
-                        	return 0; // client already exist in channel;
+                        	continue_flag = 1;
                     	}
 				    }
                     else
                     {
                         if((*channel_ite).CheckClientExistInChannel(cli) == 1)
-                            return 0;
+                        {
+                            continue_flag = 1;
+                            break;
+                        }
                         else if((split_keys.size() >= i + 1))
                         {
                             if(split_keys[i] == (*channel_ite).getKey())
@@ -113,7 +117,8 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
                                 message = ":" + cli.getNickName() + " JOIN " + (*channel_ite).getName() + "\r\n";
                         	    (*channel_ite).broadcastMessage(&cli, message);
                         	    join_server_response(cli, (*channel_ite));
-				    		    return 1;
+				    		    continue_flag = 1;
+                                break;
                             }
                             else
                                 throw std::runtime_error("475 " + cli.getNickName() + " " + (*channel_ite).getName() + " :Cannot join channel (+k) - bad key");
@@ -122,7 +127,8 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
                         {
                             message = ":" + Servername + " 475 " + cli.getNickName() + " " + (*channel_ite).getName() + " :Cannot join channel (+k)\r\n";
                             send(client_fd, message.c_str(), message.size(), 0);
-                            return(0);
+                            continue_flag = 1;
+                            break;
                         }
                     }
                 }
@@ -130,16 +136,20 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
                 {
                     message = ":" + Servername + " 473 " + cli.getNickName() + " " + (*channel_ite).getName() + " :Cannot join channel (+i)\r\n";
                     send(client_fd, message.c_str(), message.size(), 0);
-                    return(0);
+                    continue_flag = 1;
+                    break;
                 }
             }
         }
-        std::cout << "new channel was created " << std::endl;
+        if(continue_flag)
+        {
+            continue_flag = 0;
+            continue;
+        }
         if(split_keys.size() >= i + 1)
         {
             Channel new_channel(split_channels[i], split_keys[i]);
             new_channel.addClientToChannel(cli, i, split_keys, true);
-            std::cout << new_channel.getName() << std::endl;
             channels.push_back(new_channel);
             join_server_response(cli, new_channel);
         }
@@ -147,11 +157,9 @@ int	Server::handleChannel(std::vector<std::string> split_channels, std::vector<s
         {
             Channel new_channel(split_channels[i]);
             new_channel.addClientToChannel(cli, i, split_keys, true);
-            std::cout << new_channel.getName() << std::endl;
             channels.push_back(new_channel);
             join_server_response(cli, new_channel);
         }
-        std::cout << "channels " << channels.size() << " " << "channel_clients in " << channels[i].getName() << " is " << channels[i].getClientsNumber() << std::endl;
     }
     return 0;
 }

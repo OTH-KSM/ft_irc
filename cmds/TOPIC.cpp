@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/24 16:31:52 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 21:18:19 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,13 +31,13 @@ int		Server::handleTopicCommand(t_parc &parc, Client &cli)
         {
             newmsg = ":" + Servername + " 403 " + cli.getNickName() + " " + parc.params[0] + " :No such channel\r\n";
             send(client_fd, newmsg.c_str(), newmsg.size(), 0);
-            return(0); //failure
+            return(0);
         }
         if(channel_ptr && channel_ptr->CheckClientExistInChannel(cli) == 0)
         {
             newmsg = ":" + Servername + " 442 " + cli.getNickName() + " " + channel_ptr->getName() + " :You're not on that channel\r\n";
             send(client_fd, newmsg.c_str(), newmsg.size(), 0);
-            return(0); //failure
+            return(0);
         }
         else if(channel_ptr && parc.params.size() == 1)
         {
@@ -45,7 +45,7 @@ int		Server::handleTopicCommand(t_parc &parc, Client &cli)
             {
                 newmsg = ":" + Servername + " 332 " + cli.getNickName() + " " + channel_ptr->getName() + " :" + channel_ptr->getTopic() + "\r\n";
                 send(client_fd, newmsg.c_str(), newmsg.size(), 0);
-                newmsg = ":" + Servername + " 333 " + cli.getNickName() + " " + channel_ptr->getName() + " " + channel_ptr->getTopicSetter() + " " + channel_ptr->getTimeTopicWasSet() + "\r\n"; // add setat
+                newmsg = ":" + Servername + " 333 " + cli.getNickName() + " " + channel_ptr->getName() + " " + channel_ptr->getTopicSetter() + " " + channel_ptr->getTimeTopicWasSet() + "\r\n";
                 send(client_fd, newmsg.c_str(), newmsg.size(), 0);
             }
             else
@@ -59,7 +59,7 @@ int		Server::handleTopicCommand(t_parc &parc, Client &cli)
         {
             if((channel_ptr->getTopicRestricted() == 1 && channel_ptr->isOperator(cli) == 1) ||  channel_ptr->getTopicRestricted() == 0)
             {
-                newmsg = ":" + Servername + " TOPIC " + channel_ptr->getName() + ":\r\n"; // not sure
+                newmsg = ":" + Servername + " TOPIC " + channel_ptr->getName() + ":\r\n";
                 channel_ptr->clearTopic();
                 channel_ptr->broadcastMessageServer(newmsg);
             }
@@ -69,10 +69,10 @@ int		Server::handleTopicCommand(t_parc &parc, Client &cli)
                 send(client_fd, newmsg.c_str(), newmsg.size(), 0);
             }
         }
-        else if(channel_ptr && parc.params.size() >= 2 && parc.params[1].size() > 1) // the ":" problem should be reviewed
+        else if(channel_ptr && parc.params.size() >= 2 && parc.params[1].size() > 1)
         {
             if((channel_ptr->getTopicRestricted() == 1 && channel_ptr->isOperator(cli) == 1) ||  channel_ptr->getTopicRestricted() == 0){
-                newmsg = ":" + Servername + " TOPIC " + channel_ptr->getName() + " " + parc.params[1] + "\r\n"; //not sure
+                newmsg = ":" + cli.getNickName() + " TOPIC " + channel_ptr->getName() + " " + parc.params[1] + "\r\n";
                 std::time_t t = std::time(0);
                 channel_ptr->setTopic(parc.params[1]);
                 channel_ptr->setHaveTopic(1);
@@ -82,7 +82,7 @@ int		Server::handleTopicCommand(t_parc &parc, Client &cli)
             }
             else
             {
-                newmsg = ":" + Servername + " 332 " + cli.getNickName() + " " + channel_ptr->getName() + " ::You're not channel operator\r\n";
+                newmsg = ":" + Servername + " 332 " + cli.getNickName() + " " + channel_ptr->getName() + " :You're not channel operator\r\n";
                 send(client_fd, newmsg.c_str(), newmsg.size(), 0);
             }
         }

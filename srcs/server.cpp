@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
+/*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/24 17:08:49 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 21:28:08 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,7 +127,6 @@ Channel*	Server::getChannelByName(std::string name) {
 
 int Server::check_valid_channel_name(std::string channel_name)
 {
-	std::cout << "channel_name: " << channel_name << std::endl;
     if (channel_name[0] != '#' || channel_name[0] != '&' || channel_name.size() > 200)	{
         return(0);
 	}
@@ -154,22 +153,6 @@ std::vector<std::string> Server::split(const std::string &s, const std::string &
     ret.push_back(s.substr(pos_start));
     return ret;
 }
-void Server::printClients() {
-	for (std::map<int, Client>::iterator it = clientMap.begin(); it != clientMap.end(); ++it) {
-		std::cout << "Client <" << it->first << "> Nickname: " << it->second.getNickName() << std::endl;
-		std::cout << "Username: " << it->second.getUserName() << std::endl;
-		std::cout << "Real Name: " << it->second.getRealName() << std::endl;
-		std::cout << "Registration State: " << it->second.getRegistrationState() << std::endl;
-	}
-}
-
-void Server::printChannelsAndClients() {
-	std::vector<Channel>::iterator it;
-    for (it = channels.begin(); it != channels.end(); it++)	{
-        std::cout << "Channel: " << (*it).getName() << std::endl;
-        (*it).listUsers();
-    }
-}
 
 Channel	Server::searchChannel(std::string name) {
 	for (std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); it++)  {
@@ -194,7 +177,7 @@ void    Server::init()  {
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 	struct addrinfo *bind_address;
-	getaddrinfo("10.11.1.11", "8080", &hints, &bind_address);
+	getaddrinfo(0, "8080", &hints, &bind_address);
 
 	if((this->SersocketFD = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol)) == -1)
 		throw std::runtime_error("Error in Socket");
@@ -247,7 +230,6 @@ void    Server::init()  {
 				{
 					char read[1024];
 					int bytes_received = recv(i, read, 1024, 0);
-					std::cout << bytes_received << std::endl;
 					if(bytes_received < 1)	{
 						handleQuitCommand(*this, i, master, true);
 						continue ;
@@ -256,7 +238,6 @@ void    Server::init()  {
 					if (clientMap.find(i) != clientMap.end()) {
 						clientMap[i].input.append(read);
 					}
-					std::cout << clientMap[i].input << std::endl;
 					if (clientMap[i].input.find("\n") != std::string::npos)	{
 						try
 						{
@@ -265,7 +246,6 @@ void    Server::init()  {
 						catch(const std::exception& e)
 						{
 							std::string cont = e.what();
-							std::cout << this->Servername << std::endl;
 							std::string message = ":YourServer " + cont + "\r\n";
 							send(i, message.c_str(), message.size(), 0);
 						}
@@ -308,23 +288,21 @@ void    Server::parc(std::string message, Client& cli) {
 	}
 	
 	/*	PRINT COMMANDS	*/
-	std::deque<std::string>::iterator it;
-	int i = 0;
-		std::cout << "prefix -> " << parc.prefix << std::endl;
-		std::cout << "comand -> " << parc.cmd << std::endl;
-	for (it = parc.params.begin(); it != parc.params.end(); it++)   {
-		std::cout << "param  " << i++ << " -> " << *it << std::endl;
-	}
+	// std::deque<std::string>::iterator it;
+	// int i = 0;
+	// 	std::cout << "prefix -> " << parc.prefix << std::endl;
+	// 	std::cout << "comand -> " << parc.cmd << std::endl;
+	// for (it = parc.params.begin(); it != parc.params.end(); it++)   {
+	// 	std::cout << "param  " << i++ << " -> " << *it << std::endl;
+	// }
 	
 	/*	HANDLE COMMANDS	*/
-	if (parc.cmd == "PASS" || parc.cmd == "NICK" || parc.cmd == "USER")	{
-		if (parc.cmd == "PASS")
-			handlePassCommand(parc, cli);
-		else if (parc.cmd == "NICK")
-			handleNickCommand(parc, cli);
-		else if (parc.cmd == "USER")
-			handleUserCommand(parc, cli);
-	}
+	if (parc.cmd == "PASS")
+		handlePassCommand(parc, cli);
+	else if (parc.cmd == "NICK")
+		handleNickCommand(parc, cli);
+	else if (parc.cmd == "USER")
+		handleUserCommand(parc, cli);
     else if (parc.cmd == "JOIN")
         handleJoinCommand(parc, cli);
 	else if (parc.cmd == "PRIVMSG")
@@ -333,8 +311,6 @@ void    Server::parc(std::string message, Client& cli) {
 		handleModeCommand(parc, cli);
 	else if (parc.cmd == "PONG")
 		;
-	else if (parc.cmd == "PRINT")
-		printChannelsAndClients();
 	else if (parc.cmd == "INVITE")
 		handleInviteCommand(parc, cli);
 	else if (parc.cmd == "BOTOX")

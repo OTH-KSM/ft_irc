@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:21:01 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/24 17:01:25 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 21:22:57 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,6 @@ class Server	{
 		std::vector<Channel> 	getChannels();
 		Channel*				getChannelByName(std::string name);
 
-		void		printClients( void );
 		int			isClientExist(std::string nick, int fd);
 		void		sendOneToOne(Client& cli, std::string dest, std::string message);
 		void    	sendToChannel(Client& cli, std::string dest, std::string message);
@@ -87,7 +86,6 @@ class Server	{
 
 	public:
 		void 		removeChannel(Channel channel);
-		void		printChannelsAndClients();
 		void    	join_server_response(Client &cli, Channel &channel) ;
 		
 };
