@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/22 03:24:53 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/22 11:04:33 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 16:31:22 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,12 +17,13 @@ void Server::handleSendFileCommand(t_parc &parc, Client &cli) {
         throw std::runtime_error("451 * :You have not registred");
     if (parc.params.size() != 2)
         throw std::runtime_error("461 * " + parc.cmd + " :Not enough parameters");
+    parc.params[0] = lower_string(parc.params[0]);
     Client *target = getClientByNick(parc.params[0]);
     if (!target)
         throw std::runtime_error("461 " + cli.getNickName() + " " + parc.params[0] + " :No such Nick");
     std::fstream file(parc.params[1], std::fstream::in);
     if (!file.is_open())
-        throw std::runtime_error("0 * :Invalid file path");
+        throw std::runtime_error("996 * :Invalid file path");
     int srch = parc.params[1].find_last_of('/');
     std::string filename = parc.params[1].substr(srch + 1);
     File newFile(filename, parc.params[1], cli.getNickName(), parc.params[0]);
@@ -43,7 +44,7 @@ void    Server::handleGetFileCommand(t_parc &parc, Client &cli) {
         }
     }
     if (file.getReceiver() != cli.getNickName())
-        throw std::runtime_error("0 * :Permission Denied");
+        throw std::runtime_error("999 * :Permission Denied");
     std::fstream ofs(parc.params[1] + "/" + parc.params[0], std::fstream::out);
     std::fstream ifs(file.getPath(), std::fstream::in);
     if (ofs.is_open())  {

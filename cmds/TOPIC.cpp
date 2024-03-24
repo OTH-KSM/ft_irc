@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/21 23:42:37 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 16:31:52 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ int		Server::handleTopicCommand(t_parc &parc, Client &cli)
         throw std::runtime_error("461 * " + parc.cmd + " :Not enough parameters");
     if(parc.params.size() >= 1)
     {
+        parc.params[0] = lower_string(parc.params[0]);
         channel_ptr = getChannelByName(parc.params[0]);
         if(!channel_ptr)
         {

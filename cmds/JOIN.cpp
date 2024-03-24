@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:05:39 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/23 21:33:26 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 16:34:29 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ void    Server::handleJoinCommand(t_parc &parc, Client& cli)    {
         throw std::runtime_error(parc.cmd + " :Not enough parameters");
     std::vector<std::string> split_channels;
     std::vector<std::string> split_keys;
+    parc.params[0] = lower_string(parc.params[0]);
     if (parc.params.size() >= 1)
         split_channels = split(parc.params[0], ",");
     if(parc.params.size() >= 2)

@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:09:20 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/23 21:02:16 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 16:46:24 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,15 @@
 
 void	Server::handleInviteCommand(t_parc &parc, Client &cli)
 {
+	int state = cli.getRegistrationState();
+    if (state != 3)
+        throw std::runtime_error("451 * :You have not registered");
 	if (parc.params.size() < 2)
 	{
 		throw std::runtime_error("461 * " + parc.cmd + " :Not enough parameters");
 		return ;
 	}
+	parc.params[1] = lower_string(parc.params[1]);
 	Channel *channel = getChannelByName(parc.params[1]);
 	if (!channel)
 	{
@@ -34,6 +38,7 @@ void	Server::handleInviteCommand(t_parc &parc, Client &cli)
 	if (channel && !channel->CheckClientExistInChannel(cli)){
 		throw std::runtime_error("442 " + cli.getNickName() + " " + parc.params[1] + " :You're not on that channel");
 	}
+	parc.params[0] = lower_string(parc.params[0]);
 	Client *target = getClientByNick(parc.params[0]);
 	if (!target)
 	{

@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/24 15:40:53 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 16:52:48 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -329,6 +329,8 @@ void    Server::parc(std::string message, Client& cli) {
 		handlePrivmsgCommand(parc, cli);
 	else if (parc.cmd == "MODE")
 		handleModeCommand(parc, cli);
+	else if (parc.cmd == "PONG")
+		;
 	else if (parc.cmd == "PRINT")
 		printChannelsAndClients();
 	else if (parc.cmd == "INVITE")
@@ -344,7 +346,7 @@ void    Server::parc(std::string message, Client& cli) {
 	else if (parc.cmd == "GETFILE")
 		handleGetFileCommand(parc, cli);
 	else
-		throw std::runtime_error("421 * :Unknown command");
+		throw std::runtime_error("421 * " + parc.cmd + " :Unknown command");
 }
 
 

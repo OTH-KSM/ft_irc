@@ -6,21 +6,23 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:08:19 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/22 00:06:57 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 15:59:14 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../incld/irc.hpp"
 
 void    Server::sendOneToOne(Client& cli, std::string dest, std::string message)    {
+    dest = lower_string(dest);
 	int destFd = isClientExist(dest, cli.getFd());
 	if (destFd == -1)
-		throw std::runtime_error("401 " + cli.getNickName() + " " + dest + " :No such channel");
+		throw std::runtime_error("401 " + cli.getNickName() + " " + dest + " :No such nick");
 	std::string newmsg = ":" + cli.getNickName() + " PRIVMSG " + dest + " : " + message + "\r\n";
 	send(destFd, newmsg.c_str(), newmsg.size(), 0);
 }
 
 void    Server::sendToChannel(Client &cli, std::string dest, std::string message) {
+    dest = lower_string(dest);
     for(std::vector<Channel>::iterator it = channels.begin(); it != channels.end(); it++)
     {
         if((*it).getName() == dest)

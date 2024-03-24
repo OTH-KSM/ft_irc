@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:11:38 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/23 19:59:45 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 16:46:35 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,13 +102,18 @@ std::string Channel::getChannelModes(void)
 	}
 	else
 		channelModes.append(" no modes is set");
+	channelModes.append(" ");
 	channelModes.append(channelArgModes);
 	return (channelModes);
 }
 
 void	Server::handleModeCommand(t_parc &parc, Client& cli)	{
+	int state = cli.getRegistrationState();
+    if (state != 3)
+        throw std::runtime_error("451 * :You have not registered");
 	if (parc.params.size() < 1)
 		throw std::runtime_error("461 * " + parc.cmd + " :Not enough parameters");
+	parc.params[0] = lower_string(parc.params[0]);
 	if (!Channel::isValidChannelName(parc.params[0]))	{
 		throw std::runtime_error("403 * " + parc.params[0] + " :No such channel");
 	}
@@ -169,6 +174,7 @@ void	Server::handleModeCommand(t_parc &parc, Client& cli)	{
 						send(cli.getFd(), message.c_str(), message.size(), 0);
 						continue;
 					}
+					*flagArgIt = lower_string(*flagArgIt);
 					Client *target = getClientByNick(*flagArgIt);
 					if (!target)
 					{

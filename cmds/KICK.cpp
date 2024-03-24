@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/22 02:37:11 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 16:35:36 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ int		Server::handleKickCommand(t_parc &parc, Client &cli)
         throw std::runtime_error("461 * " + parc.cmd + " :Not enough parameters");
     else
     {
+        parc.params[0] = lower_string(parc.params[0]);
         channel_ptr = getChannelByName(parc.params[0]);
         if(!channel_ptr)
         {
@@ -38,7 +39,7 @@ int		Server::handleKickCommand(t_parc &parc, Client &cli)
             send(client_fd, newmsg.c_str(), newmsg.size(), 0);
             return(0); //failure
         }
-        else if(channel_ptr && channel_ptr->CheckClientExistInChannel(parc.params[1]) == 0)
+        else if(channel_ptr && channel_ptr->CheckClientExistInChannel(lower_string(parc.params[1])) == 0)
         {
             newmsg = ":" + Servername + " 441 " + cli.getNickName() + " " + parc.params[1] + " " + channel_ptr->getName() + " :They aren't on that channel\r\n";
             send(client_fd, newmsg.c_str(), newmsg.size(), 0);
