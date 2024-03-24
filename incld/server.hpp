@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:21:01 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/24 15:32:48 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 15:41:08 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,6 @@ class Server	{
 		void		handleInviteCommand(t_parc &parc, Client &client);
 		int			handleTopicCommand(t_parc &parc, Client &client);
 		int			handleKickCommand(t_parc &parc, Client &client);
-		void   		handleUnknownCommand(t_parc &parc, Client &cli);
 
 		void    	handleSendFileCommand(t_parc &parc, Client &cli);
 		void    	handleGetFileCommand(t_parc &parc, Client &cli);

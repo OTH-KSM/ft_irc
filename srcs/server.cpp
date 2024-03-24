@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/24 15:33:06 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 15:40:53 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -344,8 +344,7 @@ void    Server::parc(std::string message, Client& cli) {
 	else if (parc.cmd == "GETFILE")
 		handleGetFileCommand(parc, cli);
 	else
-		handleUnknownCommand(parc, cli);
+		throw std::runtime_error("421 * :Unknown command");
 }
-
 
 
