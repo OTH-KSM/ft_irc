@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:19:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/20 08:20:47 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 16:59:58 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,10 +25,13 @@ class Client
 		int			registrationState;
 		int			channels_joined;
 		std::vector<std::string>	channelInvitations;
+
 	public:
+		std::string input;
+
 		Client();
 		~Client();
-
+	
 	public:
 		void		setFd(int fd);
 		void		setNickName(std::string nick);

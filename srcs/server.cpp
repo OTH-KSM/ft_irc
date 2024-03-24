@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/26 09:47:48 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/24 16:52:48 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 17:08:49 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -253,12 +253,14 @@ void    Server::init()  {
 						continue ;
 					}
 					read[bytes_received] = 0;
-					this->input.append(read);
-					std::cout << this->input << std::endl;
-					if (this->input.find("\n") != std::string::npos)	{
+					if (clientMap.find(i) != clientMap.end()) {
+						clientMap[i].input.append(read);
+					}
+					std::cout << clientMap[i].input << std::endl;
+					if (clientMap[i].input.find("\n") != std::string::npos)	{
 						try
 						{
-							Server::parc(this->input, clientMap[i]);
+							Server::parc(clientMap[i].input, clientMap[i]);
 						}
 						catch(const std::exception& e)
 						{
@@ -267,7 +269,7 @@ void    Server::init()  {
 							std::string message = ":YourServer " + cont + "\r\n";
 							send(i, message.c_str(), message.size(), 0);
 						}
-						this->input.clear();
+						clientMap[i].input.clear();
 					}
 				}
 			}

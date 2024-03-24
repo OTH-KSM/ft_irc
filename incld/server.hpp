@@ -6,7 +6,7 @@
 /*   By: okassimi <okassimi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 08:21:01 by okassimi          #+#    #+#             */
-/*   Updated: 2024/03/24 15:41:08 by okassimi         ###   ########.fr       */
+/*   Updated: 2024/03/24 17:01:25 by okassimi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,6 @@ class Server	{
 		int			port;
 		std::string	password;
 		int			SersocketFD;
-		std::string	input;
 
 		std::map<int, Client>	clientMap;
 		std::vector<Channel>	channels;

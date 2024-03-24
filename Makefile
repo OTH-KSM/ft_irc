@@ -24,3 +24,6 @@ re : fclean all
 
 
 # the lower case function should be in every command contained the channel as parameter
+
+
+# 20:23 <#linux> YourServer has set topic: this is topic
